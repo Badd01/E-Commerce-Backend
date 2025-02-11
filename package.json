@@ -1,11 +1,11 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "./dist/src/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/server.js",
-    "dev": "node --import=tsx --watch --env-file=.env src/server.ts",
+    "start": "node ./dist/src/index.js",
+    "dev": "node --import=tsx --watch --env-file=.env ./src/index.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"
@@ -27,7 +27,6 @@
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.39.2",
     "express": "^4.21.2",
-    "mongoose": "^8.10.0",
     "pg": "^8.13.1"
   }
 }
