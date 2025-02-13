@@ -37,6 +37,7 @@ const productValidationSchema = z.object({
     .nonnegative({ message: "Rating must be >= 0" })
     .lte(5, { message: "Rating must be <= 5" }),
   createdAt: z.coerce.date({ message: "Invalid date" }), // coerce date values
+  updatedAt: z.coerce.date({ message: "Invalid date" }),
 });
 
 const categoryValidationSchema = z.object({
@@ -92,10 +93,6 @@ const productVariantValidationSchema = z.object({
     required_error: "Color id is required",
     invalid_type_error: "Color id must be a number",
   }),
-  productImage: z.string({
-    required_error: "Product image is required",
-    invalid_type_error: "Product image must be a string",
-  }),
   quantity: z
     .number({
       required_error: "Quantity is required",
@@ -108,6 +105,25 @@ const productVariantValidationSchema = z.object({
   }),
 });
 
+const productImageSchema = z.object({
+  productId: z.number({
+    required_error: "Product id is required",
+    invalid_type_error: "Product id must be a number",
+  }),
+  colorId: z.number({
+    required_error: "Color id is required",
+    invalid_type_error: "Color id must be a number",
+  }),
+  imageUrl: z.string({
+    required_error: "Image url is required",
+    invalid_type_error: "Image url must be a string",
+  }),
+  publicId: z.string({
+    required_error: "Public id is required",
+    invalid_type_error: "Public id must be a string",
+  }),
+});
+
 export {
   productValidationSchema,
   productVariantValidationSchema,
@@ -115,4 +131,5 @@ export {
   sizeValidationSchema,
   colorValidationSchema,
   categoryValidationSchema,
+  productImageSchema,
 };

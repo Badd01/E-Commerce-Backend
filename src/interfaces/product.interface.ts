@@ -6,6 +6,7 @@ interface TProduct {
   discount: number;
   rating?: number;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 interface TCategory {
@@ -29,9 +30,23 @@ interface TProductVariant {
   productId: number;
   sizeId: number;
   colorId: number;
-  productImage: string;
   quantity: number;
   isStock: boolean;
 }
 
-export { TCategory, TColor, TProduct, TProductVariant, TSize, TTag };
+interface TProductImage {
+  productId: number;
+  colorId: number;
+  imageUrl: string;
+  publicId: string;
+}
+
+export {
+  TCategory,
+  TColor,
+  TProduct,
+  TProductVariant,
+  TSize,
+  TTag,
+  TProductImage,
+};

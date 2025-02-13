@@ -1,6 +1,6 @@
 import config from "./config";
 import cors from "cors";
-import express, { Request, Response } from "express";
+import express from "express";
 import { ProductRoutes } from "./routes/product.routes";
 
 const app = express();
@@ -12,10 +12,7 @@ app.use(cors());
 
 // Routes
 app.use("/api/products", ProductRoutes);
-
-app.get("/", (req: Request, res: Response) => {
-  res.send("Ecommerce server is running ...!");
-});
+// app.use("/api/users");
 
 async function main() {
   app.listen(config.port, () => {

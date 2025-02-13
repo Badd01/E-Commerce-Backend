@@ -15,6 +15,7 @@ const products = table(
     discount: t.doublePrecision().notNull(),
     rating: t.doublePrecision(),
     createdAt: t.timestamp("created_at").defaultNow().notNull(),
+    updatedAt: t.timestamp(),
   },
   (table) => [t.uniqueIndex("product_name_idx").on(table.productName)]
 );
@@ -73,9 +74,30 @@ const productVariants = table("product_variants", {
     .integer("color_id")
     .notNull()
     .references(() => colors.id),
-  productImage: t.text("product_image").notNull(),
   quantity: t.integer().notNull(),
   isStock: t.boolean("is_stock").notNull(),
 });
 
-export { products, tags, sizes, colors, productVariants, categories };
+const productImage = table("image_products", {
+  id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+  productId: t
+    .integer("product_variant_id")
+    .notNull()
+    .references(() => products.id, { onDelete: "cascade" }),
+  colorId: t
+    .integer("color_id")
+    .notNull()
+    .references(() => colors.id, { onDelete: "cascade" }),
+  imageUrl: t.text("product_image_path").notNull(),
+  publicId: t.text("public_id").notNull(),
+});
+
+export {
+  products,
+  tags,
+  sizes,
+  colors,
+  productVariants,
+  categories,
+  productImage,
+};
