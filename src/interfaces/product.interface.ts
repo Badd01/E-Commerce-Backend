@@ -6,7 +6,7 @@ interface TProduct {
   discount: number;
   rating?: number;
   createdAt: Date;
-  updatedAt: Date;
+  updatedAt?: Date;
 }
 
 interface TCategory {

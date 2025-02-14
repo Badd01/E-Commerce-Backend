@@ -10,6 +10,7 @@ import {
 } from "../validations/product.validation";
 import { ProductServices } from "../services/product.services";
 import { uploadToCloudinary } from "../helpers/cloudinary.helper";
+import fs from "fs";
 
 //Category
 const createCategory = async (req: Request, res: Response) => {
@@ -150,29 +151,33 @@ const createProductImage = async (req: Request, res: Response) => {
   try {
     // if not have file
     if (!req.file) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: "File is required",
       });
+    } else {
+      // upload to cloudinary
+      const { productId, colorId } = req.body;
+      const { url, publicId } = await uploadToCloudinary(req.file.path);
+
+      //validation
+      const parser = productImageSchema.parse({
+        productId,
+        colorId,
+        imageUrl: url,
+        publicId,
+      });
+      const result = await ProductServices.createProductImageIntoDB(parser);
+
+      //Delete file in uploads
+      fs.unlinkSync(req.file.path);
+
+      res.status(201).json({
+        success: true,
+        message: "Product image created successfully",
+        data: result,
+      });
     }
-
-    // upload to cloudinary
-    const { productId, colorId } = req.body;
-    const { url, publicId } = await uploadToCloudinary(req.file.path);
-
-    const parser = productImageSchema.parse({
-      productId,
-      colorId,
-      imageUrl: url,
-      publicId,
-    });
-    const result = await ProductServices.createProductImageIntoDB(parser);
-
-    res.status(201).json({
-      success: true,
-      message: "Product image created successfully",
-      data: result,
-    });
   } catch (error: any) {
     console.log(error);
     res.status(500).json({

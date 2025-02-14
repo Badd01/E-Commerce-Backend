@@ -1,5 +1,6 @@
 import express from "express";
 import { productController } from "../controllers/product.controller";
+import { uploadMiddleware } from "../middlewares/upload.middleware";
 
 const router = express.Router();
 
@@ -12,7 +13,11 @@ router.post("/create", productController.createProduct);
 router.post("/create/variant", productController.createProductVariant);
 
 // Upload image
-router.post("create/image", productController.createProductImage);
+router.post(
+  "/create/image",
+  uploadMiddleware.single("image"),
+  productController.createProductImage
+);
 
 //Get
 router.get("/category");

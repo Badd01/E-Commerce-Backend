@@ -1,4 +1,5 @@
-import multer from "multer";
+import { Request } from "express";
+import multer, { FileFilterCallback } from "multer";
 import path from "path";
 
 // Product image
@@ -14,4 +15,23 @@ const storageImage = multer.diskStorage({
   },
 });
 
-const uploadImage = multer({ storage: storageImage });
+// Check file filter
+const checkFileFilter = (
+  req: Request,
+  file: Express.Multer.File,
+  cb: FileFilterCallback
+) => {
+  if (file.mimetype.startsWith("image")) {
+    cb(null, true);
+  } else {
+    cb(new Error("Not a image!"));
+  }
+};
+
+export const uploadMiddleware = multer({
+  storage: storageImage,
+  fileFilter: checkFileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+  },
+});

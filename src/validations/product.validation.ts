@@ -37,7 +37,7 @@ const productValidationSchema = z.object({
     .nonnegative({ message: "Rating must be >= 0" })
     .lte(5, { message: "Rating must be <= 5" }),
   createdAt: z.coerce.date({ message: "Invalid date" }), // coerce date values
-  updatedAt: z.coerce.date({ message: "Invalid date" }),
+  updatedAt: z.coerce.date({ message: "Invalid date" }).optional(),
 });
 
 const categoryValidationSchema = z.object({
