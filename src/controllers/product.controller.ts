@@ -8,7 +8,7 @@ import {
   sizeValidationSchema,
   tagValidationSchema,
 } from "../validations/product.validation";
-import { ProductServices } from "../services/product.services";
+import { productServices } from "../services/product.services";
 import {
   updateToCloudinary,
   uploadToCloudinary,
@@ -30,7 +30,7 @@ const createCategory = async (req: Request, res: Response) => {
         error: error,
       });
     } else {
-      const result = await ProductServices.createACategoryIntoDB(data);
+      const result = await productServices.createACategoryIntoDB(data);
       //Created
       res.status(201).json({
         success: true,
@@ -39,11 +39,12 @@ const createCategory = async (req: Request, res: Response) => {
       });
     }
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong",
+      error: error,
     });
   }
 };
@@ -60,7 +61,7 @@ const createTag = async (req: Request, res: Response) => {
         error: error,
       });
     } else {
-      const result = await ProductServices.createATagIntoDB(data);
+      const result = await productServices.createATagIntoDB(data);
       //Created
       res.status(201).json({
         success: true,
@@ -69,11 +70,12 @@ const createTag = async (req: Request, res: Response) => {
       });
     }
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong",
+      error: error,
     });
   }
 };
@@ -90,7 +92,7 @@ const createSize = async (req: Request, res: Response) => {
         error: error,
       });
     } else {
-      const result = await ProductServices.createASizeIntoDB(data);
+      const result = await productServices.createASizeIntoDB(data);
       //Created
       res.status(201).json({
         success: true,
@@ -99,11 +101,12 @@ const createSize = async (req: Request, res: Response) => {
       });
     }
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong",
+      error: error,
     });
   }
 };
@@ -120,7 +123,7 @@ const createColor = async (req: Request, res: Response) => {
         error: error,
       });
     } else {
-      const result = await ProductServices.createAColorIntoDB(data);
+      const result = await productServices.createAColorIntoDB(data);
       //Created
       res.status(201).json({
         success: true,
@@ -129,11 +132,12 @@ const createColor = async (req: Request, res: Response) => {
       });
     }
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong",
+      error: error,
     });
   }
 };
@@ -151,7 +155,7 @@ const createProduct = async (req: Request, res: Response) => {
         error: error,
       });
     } else {
-      const result = await ProductServices.createAProductIntoDB(data);
+      const result = await productServices.createAProductIntoDB(data);
       //Created
       res.status(201).json({
         success: true,
@@ -160,11 +164,12 @@ const createProduct = async (req: Request, res: Response) => {
       });
     }
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong",
+      error: error,
     });
   }
 };
@@ -182,7 +187,7 @@ const createProductVariant = async (req: Request, res: Response) => {
         error: error,
       });
     } else {
-      const result = await ProductServices.createAProductVariantIntoDB(data);
+      const result = await productServices.createAProductVariantIntoDB(data);
       //Created
       res.status(201).json({
         success: true,
@@ -191,11 +196,12 @@ const createProductVariant = async (req: Request, res: Response) => {
       });
     }
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong",
+      error: error,
     });
   }
 };
@@ -238,7 +244,7 @@ const createProductImage = async (req: Request, res: Response) => {
         error: error,
       });
     } else {
-      const result = await ProductServices.createProductImageIntoDB(data);
+      const result = await productServices.createProductImageIntoDB(data);
 
       //Delete file in uploads
       await fs.promises.unlink(req.file.path);
@@ -250,11 +256,12 @@ const createProductImage = async (req: Request, res: Response) => {
       });
     }
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong",
+      error: error,
     });
   }
 };
@@ -262,7 +269,7 @@ const createProductImage = async (req: Request, res: Response) => {
 //Get all
 const getAllCategory = async (req: Request, res: Response) => {
   try {
-    const result = await ProductServices.getAllCategoryFromDB();
+    const result = await productServices.getAllCategoryFromDB();
 
     if (!result || result.length === 0) {
       //OK
@@ -280,18 +287,19 @@ const getAllCategory = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong",
+      error: error,
     });
   }
 };
 
 const getAllTag = async (req: Request, res: Response) => {
   try {
-    const result = await ProductServices.getAllTagFromDB();
+    const result = await productServices.getAllTagFromDB();
 
     if (!result || result.length === 0) {
       //OK
@@ -309,18 +317,19 @@ const getAllTag = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong",
+      error: error,
     });
   }
 };
 
 const getAllColor = async (req: Request, res: Response) => {
   try {
-    const result = await ProductServices.getAllColorFromDB();
+    const result = await productServices.getAllColorFromDB();
 
     if (!result || result.length === 0) {
       //OK
@@ -338,18 +347,19 @@ const getAllColor = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong",
+      error: error,
     });
   }
 };
 
 const getAllSize = async (req: Request, res: Response) => {
   try {
-    const result = await ProductServices.getAllSizeFromDB();
+    const result = await productServices.getAllSizeFromDB();
 
     if (!result || result.length === 0) {
       //OK
@@ -367,18 +377,19 @@ const getAllSize = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong",
+      error: error,
     });
   }
 };
 
 const getAllProduct = async (req: Request, res: Response) => {
   try {
-    const result = await ProductServices.getAllProductFromDB();
+    const result = await productServices.getAllProductFromDB();
 
     if (!result || result.length === 0) {
       //OK
@@ -396,18 +407,19 @@ const getAllProduct = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong",
+      error: error,
     });
   }
 };
 
 const getAllProductVariant = async (req: Request, res: Response) => {
   try {
-    const result = await ProductServices.getAllProductVariantFromDB();
+    const result = await productServices.getAllProductVariantFromDB();
 
     if (!result || result.length === 0) {
       //OK
@@ -425,18 +437,19 @@ const getAllProductVariant = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong",
+      error: error,
     });
   }
 };
 
 const getAllProductImage = async (req: Request, res: Response) => {
   try {
-    const result = await ProductServices.getAllProductImageFromDB();
+    const result = await productServices.getAllProductImageFromDB();
 
     if (!result || result.length === 0) {
       //OK
@@ -454,11 +467,12 @@ const getAllProductImage = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong",
+      error: error,
     });
   }
 };
@@ -478,7 +492,7 @@ const getSingleTag = async (req: Request, res: Response) => {
       return;
     }
 
-    const data = await ProductServices.getSingleTagFromDB(tagId);
+    const data = await productServices.getSingleTagFromDB(tagId);
 
     if (!data) {
       //Not Found
@@ -495,11 +509,12 @@ const getSingleTag = async (req: Request, res: Response) => {
       data: data,
     });
   } catch (error) {
-    console.error("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
+      error: error,
     });
   }
 };
@@ -518,7 +533,7 @@ const getSingleProduct = async (req: Request, res: Response) => {
       return;
     }
 
-    const data = await ProductServices.getSingleProductFromDB(productId);
+    const data = await productServices.getSingleProductFromDB(productId);
 
     if (!data) {
       //Not Found
@@ -535,11 +550,12 @@ const getSingleProduct = async (req: Request, res: Response) => {
       data: data,
     });
   } catch (error) {
-    console.error("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
+      error: error,
     });
   }
 };
@@ -558,7 +574,7 @@ const getSingleProductVariant = async (req: Request, res: Response) => {
       return;
     }
 
-    const data = await ProductServices.getSingleProductVariantFromDB(
+    const data = await productServices.getSingleProductVariantFromDB(
       productVariantId
     );
 
@@ -577,11 +593,12 @@ const getSingleProductVariant = async (req: Request, res: Response) => {
       data: data,
     });
   } catch (error) {
-    console.error("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
+      error: error,
     });
   }
 };
@@ -600,7 +617,7 @@ const getSingleProductImage = async (req: Request, res: Response) => {
       return;
     }
 
-    const data = await ProductServices.getSingleProductImageFromDB(
+    const data = await productServices.getSingleProductImageFromDB(
       productImageId
     );
 
@@ -619,11 +636,12 @@ const getSingleProductImage = async (req: Request, res: Response) => {
       data: data,
     });
   } catch (error) {
-    console.error("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
+      error: error,
     });
   }
 };
@@ -654,19 +672,10 @@ const updateCategory = async (req: Request, res: Response) => {
         error: error,
       });
     } else {
-      const result = await ProductServices.updateCategoryIntoDB(
+      const result = await productServices.updateCategoryIntoDB(
         categoryId,
         data
       );
-
-      if (!result) {
-        //Not Found
-        res.status(404).json({
-          success: false,
-          message: "Category not found",
-        });
-        return;
-      }
       //OK
       res.status(200).json({
         success: true,
@@ -675,11 +684,12 @@ const updateCategory = async (req: Request, res: Response) => {
       });
     }
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
+      error: error,
     });
   }
 };
@@ -707,16 +717,8 @@ const updateTag = async (req: Request, res: Response) => {
         error: error,
       });
     } else {
-      const result = await ProductServices.updateTagIntoDB(tagId, data);
+      const result = await productServices.updateTagIntoDB(tagId, data);
 
-      if (!result) {
-        //Not Found
-        res.status(404).json({
-          success: false,
-          message: "Tag not found",
-        });
-        return;
-      }
       //OK
       res.status(200).json({
         success: true,
@@ -725,11 +727,12 @@ const updateTag = async (req: Request, res: Response) => {
       });
     }
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
+      error: error,
     });
   }
 };
@@ -757,16 +760,8 @@ const updateSize = async (req: Request, res: Response) => {
         error: error,
       });
     } else {
-      const result = await ProductServices.updateSizeIntoDB(sizeId, data);
+      const result = await productServices.updateSizeIntoDB(sizeId, data);
 
-      if (!result) {
-        //Not Found
-        res.status(404).json({
-          success: false,
-          message: "Size not found",
-        });
-        return;
-      }
       //OK
       res.status(200).json({
         success: true,
@@ -775,11 +770,12 @@ const updateSize = async (req: Request, res: Response) => {
       });
     }
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
+      error: error,
     });
   }
 };
@@ -807,16 +803,7 @@ const updateColor = async (req: Request, res: Response) => {
         error: error,
       });
     } else {
-      const result = await ProductServices.updateColorIntoDB(colorId, data);
-
-      if (!result) {
-        //Not Found
-        res.status(404).json({
-          success: false,
-          message: "Color not found",
-        });
-        return;
-      }
+      const result = await productServices.updateColorIntoDB(colorId, data);
       //OK
       res.status(200).json({
         success: true,
@@ -825,11 +812,12 @@ const updateColor = async (req: Request, res: Response) => {
       });
     }
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
+      error: error,
     });
   }
 };
@@ -859,16 +847,7 @@ const updateProduct = async (req: Request, res: Response) => {
         error: error,
       });
     } else {
-      const result = await ProductServices.updateProductIntoDB(productId, data);
-
-      if (!result) {
-        //Not Found
-        res.status(404).json({
-          success: false,
-          message: "Product not found",
-        });
-        return;
-      }
+      const result = await productServices.updateProductIntoDB(productId, data);
       //OK
       res.status(200).json({
         success: true,
@@ -877,11 +856,12 @@ const updateProduct = async (req: Request, res: Response) => {
       });
     }
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
+      error: error,
     });
   }
 };
@@ -911,19 +891,10 @@ const updateProductVariant = async (req: Request, res: Response) => {
         error: error,
       });
     } else {
-      const result = await ProductServices.updateProductVariantIntoDB(
+      const result = await productServices.updateProductVariantIntoDB(
         productVariantId,
         data
       );
-
-      if (!result) {
-        //Not Found
-        res.status(404).json({
-          success: false,
-          message: "Product variant id not found",
-        });
-        return;
-      }
       //OK
       res.status(200).json({
         success: true,
@@ -932,11 +903,12 @@ const updateProductVariant = async (req: Request, res: Response) => {
       });
     }
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
+      error: error,
     });
   }
 };
@@ -992,19 +964,10 @@ const updateProductImage = async (req: Request, res: Response) => {
         error: error,
       });
     } else {
-      const result = await ProductServices.updateProductImageIntoDB(
+      const result = await productServices.updateProductImageIntoDB(
         productImageId,
         data
       );
-
-      if (!result) {
-        //Not Found
-        res.status(404).json({
-          success: false,
-          message: "Product image id not found",
-        });
-        return;
-      }
 
       //Delete file in uploads
       await fs.promises.unlink(req.file.path);
@@ -1016,11 +979,12 @@ const updateProductImage = async (req: Request, res: Response) => {
       });
     }
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
+      error: error,
     });
   }
 };
@@ -1039,7 +1003,7 @@ const deleteCategory = async (req: Request, res: Response) => {
       return;
     }
 
-    const result = await ProductServices.deleteCategoryFromDB(categoryId);
+    const result = await productServices.deleteCategoryFromDB(categoryId);
     //OK
     res.status(200).json({
       success: true,
@@ -1047,11 +1011,12 @@ const deleteCategory = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
+      error: error,
     });
   }
 };
@@ -1068,7 +1033,7 @@ const deleteTag = async (req: Request, res: Response) => {
       return;
     }
 
-    const result = await ProductServices.deleteTagFromDB(tagId);
+    const result = await productServices.deleteTagFromDB(tagId);
     //OK
     res.status(200).json({
       success: true,
@@ -1076,11 +1041,12 @@ const deleteTag = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
+      error: error,
     });
   }
 };
@@ -1097,7 +1063,7 @@ const deleteProduct = async (req: Request, res: Response) => {
       return;
     }
 
-    const result = await ProductServices.deleteProductFromDB(productId);
+    const result = await productServices.deleteProductFromDB(productId);
     //OK
     res.status(200).json({
       success: true,
@@ -1105,11 +1071,12 @@ const deleteProduct = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
+      error: error,
     });
   }
 };
@@ -1126,7 +1093,7 @@ const deleteSize = async (req: Request, res: Response) => {
       return;
     }
 
-    const result = await ProductServices.deleteSizeFromDB(sizeId);
+    const result = await productServices.deleteSizeFromDB(sizeId);
     //OK
     res.status(200).json({
       success: true,
@@ -1134,11 +1101,12 @@ const deleteSize = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
+      error: error,
     });
   }
 };
@@ -1155,7 +1123,7 @@ const deleteColor = async (req: Request, res: Response) => {
       return;
     }
 
-    const result = await ProductServices.deleteColorFromDB(colorId);
+    const result = await productServices.deleteColorFromDB(colorId);
     //OK
     res.status(200).json({
       success: true,
@@ -1163,11 +1131,12 @@ const deleteColor = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
+      error: error,
     });
   }
 };
@@ -1184,7 +1153,7 @@ const deleteProductVariant = async (req: Request, res: Response) => {
       return;
     }
 
-    const result = await ProductServices.deleteProductVariantFromDB(
+    const result = await productServices.deleteProductVariantFromDB(
       productVariantId
     );
     //OK
@@ -1194,11 +1163,12 @@ const deleteProductVariant = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.log("Error:", error);
+    console.log("Error: ", error);
     //Internal Server Error
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
+      error: error,
     });
   }
 };

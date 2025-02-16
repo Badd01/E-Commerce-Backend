@@ -4,8 +4,7 @@ interface TProduct {
   price: number;
   finalPrice: number;
   discount: number;
-  rating?: number;
-  createdAt: Date;
+  createdAt?: Date;
   updatedAt?: Date;
 }
 

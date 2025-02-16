@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node ./dist/src/index.js",
-    "dev": "node --import=tsx ./src/index.ts",
+    "dev": "tsx watch ./src/index.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"
@@ -25,6 +25,7 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.0",
     "cloudinary": "^2.5.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",

@@ -30,13 +30,7 @@ const productValidationSchema = z.object({
     })
     .nonnegative({ message: "Discount must be >= 0" })
     .lte(1, { message: "Discount must be <= 1" }),
-  rating: z
-    .number({
-      invalid_type_error: "Rating must be a number",
-    })
-    .nonnegative({ message: "Rating must be >= 0" })
-    .lte(5, { message: "Rating must be <= 5" }),
-  createdAt: z.coerce.date({ message: "Invalid date" }), // coerce date values
+  createdAt: z.coerce.date({ message: "Invalid date" }).optional(), // coerce date values
   updatedAt: z.coerce.date({ message: "Invalid date" }).optional(),
 });
 

@@ -7,7 +7,7 @@ const categories = table(
     id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
     categoryName: t.varchar("category_name", { length: 100 }).notNull(),
   },
-  (table) => [t.uniqueIndex("category_name_idx").on(table.categoryName)]
+  (table) => [t.uniqueIndex("category_name_unique").on(table.categoryName)]
 );
 
 const tags = table(
@@ -20,7 +20,7 @@ const tags = table(
       .references(() => categories.id, { onDelete: "cascade" }),
     tagName: t.varchar("tag_name", { length: 100 }).notNull(),
   },
-  (table) => [t.uniqueIndex("tag_name_idx").on(table.tagName)]
+  (table) => [t.uniqueIndex("tag_name_unique").on(table.tagName)]
 );
 
 const products = table(
@@ -34,12 +34,11 @@ const products = table(
       .references(() => tags.id, { onDelete: "cascade" }),
     price: t.integer().notNull(),
     finalPrice: t.integer().notNull(),
-    discount: t.doublePrecision().notNull(),
-    rating: t.doublePrecision(),
-    createdAt: t.timestamp("created_at").defaultNow().notNull(),
+    discount: t.real().notNull(),
+    createdAt: t.timestamp("created_at").defaultNow(),
     updatedAt: t.timestamp(),
   },
-  (table) => [t.uniqueIndex("product_name_uq").on(table.productName)]
+  (table) => [t.uniqueIndex("product_name_unique").on(table.productName)]
 );
 
 const sizes = table(
@@ -48,7 +47,7 @@ const sizes = table(
     id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
     sizeName: t.varchar("size_name", { length: 10 }).notNull(),
   },
-  (table) => [t.uniqueIndex("size_name_idx").on(table.sizeName)]
+  (table) => [t.uniqueIndex("size_name_unique").on(table.sizeName)]
 );
 
 const colors = table(
@@ -57,7 +56,7 @@ const colors = table(
     id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
     colorName: t.varchar("color_name", { length: 30 }).notNull(),
   },
-  (table) => [t.uniqueIndex("color_name_idx").on(table.colorName)]
+  (table) => [t.uniqueIndex("color_name_unique").on(table.colorName)]
 );
 
 const productVariants = table(
@@ -81,7 +80,7 @@ const productVariants = table(
   },
   (table) => [
     t
-      .uniqueIndex("variant_idx")
+      .uniqueIndex("variant_unique")
       .on(table.productId, table.sizeId, table.colorId),
   ]
 );
@@ -101,7 +100,7 @@ const productImages = table(
     imageUrl: t.text("product_image_path").notNull(),
     publicId: t.text("public_id").notNull(),
   },
-  (table) => [t.uniqueIndex("image_idx").on(table.publicId)]
+  (table) => [t.uniqueIndex("image_unique").on(table.publicId)]
 );
 
 export {

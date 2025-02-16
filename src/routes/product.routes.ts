@@ -49,4 +49,4 @@ router.delete("/size/:id", productController.deleteSize);
 router.delete("/color/:id", productController.deleteColor);
 router.delete("/variant/:id", productController.deleteProductVariant);
 
-export const ProductRoutes = router;
+export const productRoutes = router;

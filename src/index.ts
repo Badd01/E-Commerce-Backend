@@ -1,7 +1,8 @@
 import config from "./config";
 import cors from "cors";
 import express from "express";
-import { ProductRoutes } from "./routes/product.routes";
+import { productRoutes } from "./routes/product.routes";
+import { userRoutes } from "./routes/user.routes";
 
 const app = express();
 
@@ -11,8 +12,9 @@ app.use(express.json());
 app.use(cors());
 
 // Routes
-app.use("/api/products", ProductRoutes);
+app.use("/api/products", productRoutes);
 // app.use("/api/users");
+app.use("/api/users", userRoutes);
 
 async function main() {
   app.listen(config.port, () => {

@@ -203,7 +203,7 @@ const deleteProductVariantFromDB = async (productVariantId: number) => {
   return result;
 };
 
-export const ProductServices = {
+export const productServices = {
   createAProductIntoDB,
   createACategoryIntoDB,
   createATagIntoDB,
