@@ -14,6 +14,9 @@ const users = table(
     address: t.text().notNull(),
     role: userRoleEnum().default("User"),
     revenue: t.bigint({ mode: "number" }).default(0),
+    createdAt: t.timestamp("created_at").defaultNow(),
+    updatedAt: t.timestamp(),
+    refreshToken: t.text(),
   },
   (table) => [t.uniqueIndex("email_unique").on(table.email)]
 );
