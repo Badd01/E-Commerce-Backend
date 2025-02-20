@@ -3,7 +3,7 @@ import * as t from "drizzle-orm/pg-core";
 import { products, productVariants } from "./product.schema";
 import { users } from "./user.schema";
 
-export const orderStatusEnum = pgEnum("order_status", [
+export const orderStatusEnum = pgEnum("status_enum", [
   "pending",
   "processing",
   "completed",
@@ -37,7 +37,7 @@ const order = table("orders", {
     .references(() => users.id, { onDelete: "cascade" }),
   finalPrice: t.integer("final_price").notNull(),
   address: t.text().notNull(),
-  phoneNumber: t.varchar({ length: 10 }).notNull(),
+  phoneNumber: t.varchar("phone_number", { length: 10 }).notNull(),
   status: orderStatusEnum().default("pending"),
   createdAt: t.timestamp("created_at").defaultNow(),
   updatedAt: t.timestamp(),

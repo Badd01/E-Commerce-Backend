@@ -1,28 +1,13 @@
 interface TProduct {
   productName: string;
+  slug: string;
   tagId: number;
   price: number;
-  finalPrice: number;
-  discount: number;
+  brand: string;
+  rating?: number;
+  sold?: number;
   createdAt?: Date;
   updatedAt?: Date;
-}
-
-interface TCategory {
-  categoryName: string;
-}
-
-interface TTag {
-  categoryId: number;
-  tagName: string;
-}
-
-interface TSize {
-  sizeName: string;
-}
-
-interface TColor {
-  colorName: string;
 }
 
 interface TProductVariant {
@@ -31,6 +16,8 @@ interface TProductVariant {
   colorId: number;
   quantity: number;
   isStock: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 interface TProductImage {
@@ -40,12 +27,4 @@ interface TProductImage {
   publicId: string;
 }
 
-export {
-  TCategory,
-  TColor,
-  TProduct,
-  TProductVariant,
-  TSize,
-  TTag,
-  TProductImage,
-};
+export { TProduct, TProductVariant, TProductImage };

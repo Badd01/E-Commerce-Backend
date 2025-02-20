@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import {
-  userUpdateValidationSchema,
+  userUpdatePasswordValidation,
+  userUpdateValidation,
   userValidationSchema,
 } from "../validations/user.validation";
 import { userServices } from "../services/user.services";
@@ -8,6 +9,8 @@ import generateToken from "../config/jwtToken";
 import generateRefreshToken from "../config/refreshToken";
 import { secret } from "../config/refreshToken";
 import { verify } from "jsonwebtoken";
+import sendEmail from "./email.controller";
+import crypto from "crypto";
 const registerUser = async (req: Request, res: Response) => {
   try {
     const { success, data, error } = await userValidationSchema.safeParse(
@@ -212,16 +215,7 @@ const updateAUser = async (req: Request, res: Response) => {
   try {
     const id = (req as any).user.id;
 
-    if (Number(req.params.id) !== id) {
-      //Forbidden
-      res.status(403).json({
-        success: false,
-        message: "You are not allowed to access this resource",
-      });
-      return;
-    }
-
-    const { success, data, error } = await userUpdateValidationSchema.safeParse(
+    const { success, data, error } = await userUpdateValidation.safeParse(
       req.body
     );
     if (!success) {
@@ -239,6 +233,135 @@ const updateAUser = async (req: Request, res: Response) => {
         message: "Update user successfully",
       });
     }
+  } catch (error: any) {
+    console.log("Error: ", error);
+    //Internal Server Error
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong!",
+    });
+  }
+};
+
+const updatePassword = async (req: Request, res: Response) => {
+  try {
+    const email = (req as any).user.email;
+
+    const user = await userServices.findUserByEmailFromDB(email);
+    if (!user) {
+      // Not Found
+      res.status(404).json({
+        success: false,
+        message: "No user found",
+      });
+      return;
+    }
+
+    const { success, data, error } =
+      await userUpdatePasswordValidation.safeParse(req.body);
+
+    if (!success) {
+      console.log("Error: ", error);
+      //Bad Request
+      res.status(400).json({
+        success: false,
+        message: "Invalid request body",
+      });
+    } else {
+      //Check password
+      const isValidPassword = await userServices.checkPassword(
+        data.oldPassword,
+        user.password
+      );
+      if (!isValidPassword) {
+        //Bad Request
+        res.status(400).json({
+          success: false,
+          message: "Invalid password",
+        });
+        return;
+      }
+
+      await userServices.updatePasswordIntoDB(email, data.newPassword);
+      //OK
+      res.status(200).json({
+        success: true,
+        message: "Update password successfully",
+      });
+    }
+  } catch (error: any) {
+    console.log("Error: ", error);
+    //Internal Server Error
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong!",
+    });
+  }
+};
+
+const forgotPasswordToken = async (req: Request, res: Response) => {
+  try {
+    const email = req.body.email;
+
+    const user = await userServices.findUserByEmailFromDB(email);
+
+    if (!user) {
+      // Not Found
+      res.status(404).json({
+        success: false,
+        message: "No user found",
+      });
+      return;
+    }
+
+    const resetToken = await userServices.createPasswordResetToken(user.email);
+
+    const resetURL = `http://localhost:3000/reset-password/${resetToken}`;
+    const data = {
+      to: user.email,
+      subject: "Reset Password",
+      text: "Reset Password",
+      html: `<a href="${resetURL}">Click here to reset your password</a>`,
+    };
+    await sendEmail(data);
+    res.json({ success: true, message: "Reset password email sent" });
+  } catch (error: any) {
+    console.log("Error: ", error);
+    //Internal Server Error
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong!",
+    });
+  }
+};
+
+const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const resetToken = req.params.resetToken;
+    const { password } = req.body;
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+    const user = await userServices.findUserByPasswordResetTokenFromDB(
+      hashedToken,
+      new Date(Date.now())
+    );
+
+    if (!user) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid or expired token",
+      });
+      return;
+    }
+
+    await userServices.resetPasswordIntoDB(user.email, password);
+
+    // OK
+    res
+      .status(200)
+      .json({ success: true, message: "Password reset successfully" });
   } catch (error: any) {
     console.log("Error: ", error);
     //Internal Server Error
@@ -307,15 +430,6 @@ const deleteAUser = async (req: Request, res: Response) => {
   try {
     const id = (req as any).user.id;
 
-    if (Number(req.params.id) !== id) {
-      //Forbidden
-      res.status(403).json({
-        success: false,
-        message: "You are not allowed to access this resource",
-      });
-      return;
-    }
-
     const user = await userServices.findUserByIdFromDB(id);
     if (!user) {
       // Not Found
@@ -350,4 +464,7 @@ export const userController = {
   deleteAUser,
   handleRefreshToken,
   logoutUser,
+  updatePassword,
+  forgotPasswordToken,
+  resetPassword,
 };

@@ -30,7 +30,6 @@ const authMiddleware = async (
 
     // Attach user to request
     (req as any).user = user;
-    console.log(user);
 
     next();
   } catch (error: any) {

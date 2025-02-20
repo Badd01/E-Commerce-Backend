@@ -7,6 +7,12 @@ const productValidationSchema = z.object({
       invalid_type_error: "Product name must be a string",
     })
     .max(100, { message: "Product name must be <= 100 characters" }),
+  slug: z
+    .string({
+      required_error: "Slug is required",
+      invalid_type_error: "Slug must be a string",
+    })
+    .toLowerCase(),
   tagId: z.number({
     required_error: "Tag id is required",
     invalid_type_error: "Tag id must be a number",
@@ -17,61 +23,26 @@ const productValidationSchema = z.object({
       invalid_type_error: "Price must be a number",
     })
     .nonnegative({ message: "Price must be >= 0" }),
-  finalPrice: z
+  brand: z.string({
+    required_error: "Brand is required",
+    invalid_type_error: "Brand must be a string",
+  }),
+  rating: z
     .number({
-      required_error: "Final price is required",
-      invalid_type_error: "Final price must be a number",
+      invalid_type_error: "Rating must be a number",
     })
-    .nonnegative({ message: "Price must be >= 0" }),
-  discount: z
+    .nonnegative({ message: "Rating must be >= 0" })
+    .lte(5, { message: "Rating must be <= 5" })
+    .optional(),
+  sold: z
     .number({
-      required_error: "Price is required",
-      invalid_type_error: "Price must be a number",
+      required_error: "Sold is required",
+      invalid_type_error: "Sold must be a number",
     })
-    .nonnegative({ message: "Discount must be >= 0" })
-    .lte(1, { message: "Discount must be <= 1" }),
+    .nonnegative({ message: "Rating must be >= 0" })
+    .optional(),
   createdAt: z.coerce.date({ message: "Invalid date" }).optional(), // coerce date values
   updatedAt: z.coerce.date({ message: "Invalid date" }).optional(),
-});
-
-const categoryValidationSchema = z.object({
-  categoryName: z
-    .string({
-      required_error: "Category name is required",
-      invalid_type_error: "Category name must be a string",
-    })
-    .max(100, { message: "Category name must be <= 100 characters" }),
-});
-
-const tagValidationSchema = z.object({
-  categoryId: z.number({
-    required_error: "Category id is required",
-    invalid_type_error: "Category id must be a number",
-  }),
-  tagName: z
-    .string({
-      required_error: "Tag name is required",
-      invalid_type_error: "Tag name must be a string",
-    })
-    .max(100, { message: "Tag name must be <= 100 characters" }),
-});
-
-const sizeValidationSchema = z.object({
-  sizeName: z
-    .string({
-      required_error: "Size name is required",
-      invalid_type_error: "Size name must be a string",
-    })
-    .max(10, { message: "Size name must be <= 10 characters" }),
-});
-
-const colorValidationSchema = z.object({
-  colorName: z
-    .string({
-      required_error: "Color name is required",
-      invalid_type_error: "Color name must be a string",
-    })
-    .max(30, { message: "Color name must be <= 30 characters" }),
 });
 
 const productVariantValidationSchema = z.object({
@@ -97,9 +68,11 @@ const productVariantValidationSchema = z.object({
     required_error: "Is stock is required",
     invalid_type_error: "Is stock must be a boolean",
   }),
+  createdAt: z.coerce.date({ message: "Invalid date" }).optional(), // coerce date values
+  updatedAt: z.coerce.date({ message: "Invalid date" }).optional(),
 });
 
-const productImageSchema = z.object({
+const productImageValidationSchema = z.object({
   productId: z.number({
     required_error: "Product id is required",
     invalid_type_error: "Product id must be a number",
@@ -121,9 +94,5 @@ const productImageSchema = z.object({
 export {
   productValidationSchema,
   productVariantValidationSchema,
-  tagValidationSchema,
-  sizeValidationSchema,
-  colorValidationSchema,
-  categoryValidationSchema,
-  productImageSchema,
+  productImageValidationSchema,
 };

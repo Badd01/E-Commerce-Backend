@@ -1,62 +1,25 @@
 import { pgTable as table } from "drizzle-orm/pg-core";
 import * as t from "drizzle-orm/pg-core";
-
-const categories = table(
-  "categories",
-  {
-    id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
-    categoryName: t.varchar("category_name", { length: 100 }).notNull(),
-  },
-  (table) => [t.uniqueIndex("category_name_unique").on(table.categoryName)]
-);
-
-const tags = table(
-  "tags",
-  {
-    id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
-    categoryId: t
-      .integer("category_id")
-      .notNull()
-      .references(() => categories.id, { onDelete: "cascade" }),
-    tagName: t.varchar("tag_name", { length: 100 }).notNull(),
-  },
-  (table) => [t.uniqueIndex("tag_name_unique").on(table.tagName)]
-);
+import { tags, sizes, colors } from "./attributes.schema";
 
 const products = table(
   "products",
   {
     id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
     productName: t.varchar("product_name", { length: 100 }).notNull(),
+    slug: t.varchar("slug_name", { length: 100 }).notNull(),
     tagId: t
       .integer("tag_id")
       .notNull()
       .references(() => tags.id, { onDelete: "cascade" }),
     price: t.integer().notNull(),
-    finalPrice: t.integer().notNull(),
-    discount: t.real().notNull(),
+    brand: t.varchar({ length: 100 }).notNull(),
+    rating: t.real(),
+    sold: t.integer().default(0),
     createdAt: t.timestamp("created_at").defaultNow(),
-    updatedAt: t.timestamp(),
+    updatedAt: t.timestamp("updated_at").defaultNow(),
   },
-  (table) => [t.uniqueIndex("product_name_unique").on(table.productName)]
-);
-
-const sizes = table(
-  "sizes",
-  {
-    id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
-    sizeName: t.varchar("size_name", { length: 10 }).notNull(),
-  },
-  (table) => [t.uniqueIndex("size_name_unique").on(table.sizeName)]
-);
-
-const colors = table(
-  "colors",
-  {
-    id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
-    colorName: t.varchar("color_name", { length: 30 }).notNull(),
-  },
-  (table) => [t.uniqueIndex("color_name_unique").on(table.colorName)]
+  (table) => [t.uniqueIndex("slug_name_unique").on(table.slug)]
 );
 
 const productVariants = table(
@@ -77,6 +40,8 @@ const productVariants = table(
       .references(() => colors.id),
     quantity: t.integer().notNull(),
     isStock: t.boolean("is_stock").notNull(),
+    createdAt: t.timestamp("created_at").defaultNow(),
+    updatedAt: t.timestamp("updated_at").defaultNow(),
   },
   (table) => [
     t
@@ -103,12 +68,4 @@ const productImages = table(
   (table) => [t.uniqueIndex("image_unique").on(table.publicId)]
 );
 
-export {
-  products,
-  tags,
-  sizes,
-  colors,
-  productVariants,
-  categories,
-  productImages,
-};
+export { products, productVariants, productImages };
