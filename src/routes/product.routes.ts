@@ -56,4 +56,7 @@ router.put(
   productController.updateProductImage
 );
 
+//Rating
+router.post("/rating/:id", authMiddleware, productController.ratingProduct);
+
 export const productRoutes = router;

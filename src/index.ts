@@ -18,7 +18,7 @@ app.use(cookieParser()); // Parse cookies
 // Routes
 app.use("/api/product", productRoutes);
 app.use("/api/user", userRoutes);
-app.use("/api/attributes", attributesRoutes);
+app.use("/api/attribute", attributesRoutes);
 
 // Not Found
 app.all("*", (req: Request, res: Response) => {

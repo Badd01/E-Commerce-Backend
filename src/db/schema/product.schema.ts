@@ -1,6 +1,7 @@
 import { pgTable as table } from "drizzle-orm/pg-core";
 import * as t from "drizzle-orm/pg-core";
 import { tags, sizes, colors, brands } from "./attributes.schema";
+import { users } from "./user.schema";
 
 const products = table(
   "products",
@@ -17,7 +18,7 @@ const products = table(
       .integer("brand_id")
       .notNull()
       .references(() => brands.id, { onDelete: "cascade" }),
-    rating: t.real(),
+    totalRating: t.real(),
     sold: t.integer().default(0),
     createdAt: t.timestamp("created_at").defaultNow(),
     updatedAt: t.timestamp("updated_at").defaultNow(),
@@ -71,4 +72,21 @@ const productImages = table(
   (table) => [t.uniqueIndex("image_unique").on(table.publicId)]
 );
 
-export { products, productVariants, productImages };
+const ratings = table(
+  "ratings",
+  {
+    id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+    userId: t
+      .integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    productId: t
+      .integer("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    rating: t.integer().notNull(),
+  },
+  (table) => [t.uniqueIndex("rating_unique").on(table.userId, table.productId)]
+);
+
+export { products, productVariants, productImages, ratings };

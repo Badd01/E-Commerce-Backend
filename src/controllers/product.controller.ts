@@ -3,6 +3,7 @@ import {
   productImageValidationSchema,
   productValidationSchema,
   productVariantValidationSchema,
+  ratingValidationSchema,
 } from "../validations/product.validation";
 import { productServices } from "../services/product.services";
 import {
@@ -11,6 +12,7 @@ import {
 } from "../helpers/cloudinary.helper";
 import fs from "fs";
 import slugify from "slugify"; // convert string to string with dash
+import { sum } from "drizzle-orm";
 
 // Product
 const createProduct = async (req: Request, res: Response) => {
@@ -47,13 +49,12 @@ const createProduct = async (req: Request, res: Response) => {
 };
 const getAllProduct = async (req: Request, res: Response) => {
   try {
-    const { tagId, slug, brand, price, sortBy, sortOrder, page } = req.query;
+    const { tagId, brandId, price, sortBy, sortOrder, page } = req.query;
 
     const data = await productServices.getAllProductsFromDB({
       tagId: tagId ? Number(tagId) : undefined,
       price: price ? Number(price) : undefined,
-      slug: slug ? String(slug) : undefined,
-      brand: brand ? String(brand) : undefined,
+      brandId: brandId ? Number(brandId) : undefined,
       sortBy: sortBy
         ? (String(sortBy) as "name" | "price" | "time")
         : undefined,
@@ -493,6 +494,67 @@ const updateProductImage = async (req: Request, res: Response) => {
   }
 };
 
+const ratingProduct = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+
+    const productId = Number(req.params.id);
+
+    const { rating } = req.body;
+
+    const { success, data, error } = await ratingValidationSchema.safeParse({
+      productId: productId,
+      userId: userId,
+      rating: Number(rating),
+    });
+
+    if (!success) {
+      //Bad Request
+      res.status(400).json({
+        success: false,
+        message: "Invalid request body",
+        error: error,
+      });
+    } else {
+      // Rating table
+      await productServices.ratingProduct(data);
+
+      // Total rating
+      const result = await productServices.getRatingProduct();
+      if (!result) {
+        //Not Found
+        res.status(404).json({
+          success: false,
+          message: "No rating found",
+        });
+        return;
+      }
+
+      //  Sum
+      const sumRating = result.reduce((sum, val) => sum + val.rating, 0);
+      const totalRating = sumRating / result.length;
+      console.log(totalRating);
+      console.log(sumRating);
+      console.log(result.length);
+      console.log(result);
+
+      await productServices.updateTotalRating(productId, totalRating);
+      //OK
+      res.status(200).json({
+        success: true,
+        message: "Rating product successfully",
+      });
+    }
+  } catch (error: any) {
+    console.log("Error: ", error);
+    //Internal Server Error
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+    });
+  }
+};
+
 export const productController = {
   createProduct,
   createProductVariant,
@@ -508,4 +570,5 @@ export const productController = {
   updateProductVariant,
   deleteProduct,
   deleteProductVariant,
+  ratingProduct,
 };

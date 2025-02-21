@@ -23,11 +23,11 @@ const productValidationSchema = z.object({
       invalid_type_error: "Price must be a number",
     })
     .nonnegative({ message: "Price must be >= 0" }),
-  brand: z.string({
-    required_error: "Brand is required",
-    invalid_type_error: "Brand must be a string",
+  brandId: z.number({
+    required_error: "Brand id is required",
+    invalid_type_error: "Brand must be a number",
   }),
-  rating: z
+  totalRating: z
     .number({
       invalid_type_error: "Rating must be a number",
     })
@@ -91,8 +91,27 @@ const productImageValidationSchema = z.object({
   }),
 });
 
+const ratingValidationSchema = z.object({
+  productId: z.number({
+    required_error: "Product id is required",
+    invalid_type_error: "Product id must be a number",
+  }),
+  userId: z.number({
+    required_error: "User id is required",
+    invalid_type_error: "User id must be a number",
+  }),
+  rating: z
+    .number({
+      required_error: "Rating is required",
+      invalid_type_error: "Rating must be a number",
+    })
+    .nonnegative({ message: "Rating must be >= 0" })
+    .lte(5, { message: "Rating must be <= 5" }),
+});
+
 export {
   productValidationSchema,
   productVariantValidationSchema,
   productImageValidationSchema,
+  ratingValidationSchema,
 };

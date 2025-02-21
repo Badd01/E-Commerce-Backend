@@ -2,28 +2,27 @@ import {
   TProduct,
   TProductImage,
   TProductVariant,
+  TRating,
 } from "../interfaces/product.interface";
 import {
   productImages,
   products,
   productVariants,
+  ratings,
 } from "../db/schema/product.schema";
-import * as schema from "../db/schema/product.schema";
 import { drizzle } from "drizzle-orm/node-postgres";
 import config from "../config";
-import { eq, and, lte, ilike, asc, desc } from "drizzle-orm";
+import { eq, and, lte, asc, desc } from "drizzle-orm";
 
-const db = drizzle(config.db_url!, { schema });
+const db = drizzle(config.db_url!);
 
 // Product
 const createAProductIntoDB = async (data: TProduct) => {
-  const result = await db.insert(products).values(data);
-  return result;
+  await db.insert(products).values(data);
 };
 const getAllProductsFromDB = async (obj: {
   tagId?: number;
-  slug?: string;
-  brand?: string;
+  brandId?: number;
   price?: number;
   sortBy?: "name" | "price" | "time";
   sortOrder?: "asc" | "desc";
@@ -35,8 +34,7 @@ const getAllProductsFromDB = async (obj: {
     .where(
       and(
         obj.tagId ? eq(products.tagId, obj.tagId) : undefined,
-        obj.slug ? ilike(products.slug, obj.slug) : undefined,
-        obj.brand ? ilike(products.brand, obj.brand) : undefined,
+        obj.brandId ? eq(products.brandId, obj.brandId) : undefined,
         obj.price ? lte(products.price, obj.price) : undefined
       )
     )
@@ -66,25 +64,18 @@ const getSingleProductFromDB = async (productId: number) => {
     .select()
     .from(products)
     .where(eq(products.id, productId));
-  const data1 = await db.query.products.findMany();
   return data;
 };
 const updateProductIntoDB = async (productId: number, data: TProduct) => {
-  const result = await db
-    .update(products)
-    .set(data)
-    .where(eq(products.id, productId));
-  return result;
+  await db.update(products).set(data).where(eq(products.id, productId));
 };
 const deleteProductFromDB = async (productId: number) => {
-  const result = await db.delete(products).where(eq(products.id, productId));
-  return result;
+  await db.delete(products).where(eq(products.id, productId));
 };
 
 // Product variant
 const createAProductVariantIntoDB = async (data: TProductVariant) => {
-  const result = await db.insert(productVariants).values(data);
-  return result;
+  await db.insert(productVariants).values(data);
 };
 const getAllProductVariantFromDB = async () => {
   const data = await db.select().from(productVariants);
@@ -101,23 +92,20 @@ const updateProductVariantIntoDB = async (
   productVariantId: number,
   data: TProductVariant
 ) => {
-  const result = await db
+  await db
     .update(productVariants)
     .set(data)
     .where(eq(productVariants.id, productVariantId));
-  return result;
 };
 const deleteProductVariantFromDB = async (productVariantId: number) => {
-  const result = await db
+  await db
     .delete(productVariants)
     .where(eq(productVariants.id, productVariantId));
-  return result;
 };
 
 // Product image
 const createProductImageIntoDB = async (data: TProductImage) => {
-  const result = await db.insert(productImages).values(data);
-  return result;
+  await db.insert(productImages).values(data);
 };
 const getAllProductImageFromDB = async () => {
   const data = await db.select().from(productImages);
@@ -134,11 +122,27 @@ const updateProductImageIntoDB = async (
   productImageId: number,
   data: TProductImage
 ) => {
-  const result = await db
+  await db
     .update(productImages)
     .set(data)
     .where(eq(productImages.id, productImageId));
-  return result;
+};
+
+// Rating
+const ratingProduct = async (data: TRating) => {
+  await db.insert(ratings).values(data);
+};
+
+const getRatingProduct = async () => {
+  const data = await db.select({ rating: ratings.rating }).from(ratings);
+  return data;
+};
+
+const updateTotalRating = async (productId: number, totalRating: number) => {
+  await db
+    .update(products)
+    .set({ totalRating: totalRating })
+    .where(eq(products.id, productId));
 };
 
 export const productServices = {
@@ -156,4 +160,7 @@ export const productServices = {
   updateProductVariantIntoDB,
   deleteProductFromDB,
   deleteProductVariantFromDB,
+  ratingProduct,
+  updateTotalRating,
+  getRatingProduct,
 };

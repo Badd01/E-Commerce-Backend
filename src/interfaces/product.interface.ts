@@ -4,7 +4,7 @@ interface TProduct {
   tagId: number;
   price: number;
   brandId: number;
-  rating?: number;
+  totalRating?: number;
   sold?: number;
   createdAt?: Date;
   updatedAt?: Date;
@@ -27,4 +27,10 @@ interface TProductImage {
   publicId: string;
 }
 
-export { TProduct, TProductVariant, TProductImage };
+interface TRating {
+  productId: number;
+  userId: number;
+  rating: number;
+}
+
+export { TProduct, TProductVariant, TProductImage, TRating };
