@@ -2,6 +2,10 @@ interface TCategory {
   categoryName: string;
 }
 
+interface TBrand {
+  brandName: string;
+}
+
 interface TTag {
   categoryId: number;
   tagName: string;
@@ -15,4 +19,4 @@ interface TColor {
   colorName: string;
 }
 
-export { TCategory, TColor, TSize, TTag };
+export { TCategory, TColor, TSize, TTag, TBrand };

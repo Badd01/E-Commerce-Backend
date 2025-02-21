@@ -1,6 +1,6 @@
 import { pgTable as table } from "drizzle-orm/pg-core";
 import * as t from "drizzle-orm/pg-core";
-import { tags, sizes, colors } from "./attributes.schema";
+import { tags, sizes, colors, brands } from "./attributes.schema";
 
 const products = table(
   "products",
@@ -13,7 +13,10 @@ const products = table(
       .notNull()
       .references(() => tags.id, { onDelete: "cascade" }),
     price: t.integer().notNull(),
-    brand: t.varchar({ length: 100 }).notNull(),
+    brandId: t
+      .integer("brand_id")
+      .notNull()
+      .references(() => brands.id, { onDelete: "cascade" }),
     rating: t.real(),
     sold: t.integer().default(0),
     createdAt: t.timestamp("created_at").defaultNow(),

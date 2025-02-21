@@ -3,7 +3,7 @@ interface TProduct {
   slug: string;
   tagId: number;
   price: number;
-  brand: string;
+  brandId: number;
   rating?: number;
   sold?: number;
   createdAt?: Date;

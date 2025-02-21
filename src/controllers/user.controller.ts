@@ -316,13 +316,30 @@ const forgotPasswordToken = async (req: Request, res: Response) => {
 
     const resetToken = await userServices.createPasswordResetToken(user.email);
 
-    const resetURL = `http://localhost:3000/reset-password/${resetToken}`;
+    const resetURL = `http://localhost:9000/api/user/reset-password/${resetToken}`;
     const data = {
       to: user.email,
       subject: "Reset Password",
-      text: "Reset Password",
-      html: `<a href="${resetURL}">Click here to reset your password</a>`,
+      text: "Reset your password by clicking the link below.",
+      html: `
+        <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #f9f9f9;">
+          <h2 style="color: #333;">Reset Your Password</h2>
+          <p style="color: #555; font-size: 16px;">
+            We received a request to reset your password. Click the button below to reset it.
+          </p>
+          <a href="${resetURL}" style="display: inline-block; padding: 12px 24px; margin-top: 20px; 
+            font-size: 16px; color: white; background-color: #4CAF50; text-decoration: none; border-radius: 5px;">
+            Reset Password
+          </a>
+          <p style="color: #999; font-size: 14px; margin-top: 30px;">
+            If you didn't request a password reset, you can safely ignore this email.
+          </p>
+        </div>
+      `,
     };
+
+    console.log(resetURL);
+
     await sendEmail(data);
     res.json({ success: true, message: "Reset password email sent" });
   } catch (error: any) {
@@ -337,12 +354,9 @@ const forgotPasswordToken = async (req: Request, res: Response) => {
 
 const resetPassword = async (req: Request, res: Response) => {
   try {
-    const resetToken = req.params.resetToken;
+    const { token } = req.params;
     const { password } = req.body;
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(resetToken)
-      .digest("hex");
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
     const user = await userServices.findUserByPasswordResetTokenFromDB(
       hashedToken,
       new Date(Date.now())

@@ -12,6 +12,7 @@ const sendEmail = async (data: TUserEmail) => {
       pass: config.mail_password,
     },
   });
+  console.log(config.mail_id, config.mail_password);
 
   // send mail with defined transport object
   const info = await transporter.sendMail({

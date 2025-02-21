@@ -25,6 +25,28 @@ router.delete(
   attributesController.deleteCategory
 );
 
+//Brand
+router.post(
+  "/create/brand",
+  authMiddleware,
+  isAdmin,
+  attributesController.createBrand
+);
+router.get("/brand", attributesController.getAllBrand);
+router.get("/brand/:id", attributesController.getSingleBrand);
+router.put(
+  "/brand/:id",
+  authMiddleware,
+  isAdmin,
+  attributesController.updateBrand
+);
+router.delete(
+  "/brand/:id",
+  authMiddleware,
+  isAdmin,
+  attributesController.deleteBrand
+);
+
 // Tag
 router.post(
   "/create/tag",

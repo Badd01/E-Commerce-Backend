@@ -4,6 +4,7 @@ import {
   colorValidationSchema,
   sizeValidationSchema,
   tagValidationSchema,
+  brandValidationSchema,
 } from "../validations/attributes.validation";
 import { attributesServices } from "../services/attributes.services";
 
@@ -26,6 +27,37 @@ const createCategory = async (req: Request, res: Response) => {
       res.status(201).json({
         success: true,
         message: "Category created successfully",
+      });
+    }
+  } catch (error: any) {
+    console.log("Error: ", error);
+    //Internal Server Error
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+    });
+  }
+};
+
+const createBrand = async (req: Request, res: Response) => {
+  try {
+    const { success, data, error } = await brandValidationSchema.safeParse(
+      req.body
+    );
+
+    if (!success) {
+      //Bad Request
+      res.status(400).json({
+        success: false,
+        message: "Invalid request body",
+        error: error,
+      });
+    } else {
+      await attributesServices.createABrandIntoDB(data);
+      //Created
+      res.status(201).json({
+        success: true,
+        message: "Brand created successfully",
       });
     }
   } catch (error: any) {
@@ -159,6 +191,34 @@ const getAllCategory = async (req: Request, res: Response) => {
   }
 };
 
+const getAllBrand = async (req: Request, res: Response) => {
+  try {
+    const result = await attributesServices.getAllBrandFromDB();
+
+    if (!result || result.length === 0) {
+      //Not Found
+      res.status(404).json({
+        success: false,
+        message: "No brand found",
+      });
+      return;
+    }
+    //OK
+    res.status(200).json({
+      success: true,
+      message: "Get data brands successfully",
+      data: result,
+    });
+  } catch (error: any) {
+    console.log("Error: ", error);
+    //Internal Server Error
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+    });
+  }
+};
+
 const getAllTag = async (req: Request, res: Response) => {
   try {
     const result = await attributesServices.getAllTagFromDB();
@@ -273,6 +333,36 @@ const getSingleTag = async (req: Request, res: Response) => {
   }
 };
 
+const getSingleBrand = async (req: Request, res: Response) => {
+  try {
+    const brandId = Number(req.params.id);
+
+    const data = await attributesServices.getSingleBrandFromDB(brandId);
+
+    if (!data) {
+      //Not Found
+      res.status(404).json({
+        success: false,
+        message: "No brand found",
+      });
+      return;
+    }
+    //OK
+    res.status(200).json({
+      success: true,
+      message: "Brand retrieved successfully",
+      data: data,
+    });
+  } catch (error) {
+    console.log("Error: ", error);
+    //Internal Server Error
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong!",
+    });
+  }
+};
+
 const updateCategory = async (req: Request, res: Response) => {
   try {
     const categoryId = Number(req.params.id);
@@ -293,6 +383,39 @@ const updateCategory = async (req: Request, res: Response) => {
       res.status(200).json({
         success: true,
         message: "Category updated successfuly",
+      });
+    }
+  } catch (error: any) {
+    console.log("Error: ", error);
+    //Internal Server Error
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong!",
+      error: error,
+    });
+  }
+};
+
+const updateBrand = async (req: Request, res: Response) => {
+  try {
+    const brandId = Number(req.params.id);
+
+    const { success, data, error } = await brandValidationSchema.safeParse(
+      req.body
+    );
+    if (!success) {
+      //Bad Request
+      res.status(400).json({
+        success: false,
+        message: "Invalid request body",
+        error: error,
+      });
+    } else {
+      await attributesServices.updateBrandIntoDB(brandId, data);
+      //OK
+      res.status(200).json({
+        success: true,
+        message: "Brand updated successfuly",
       });
     }
   } catch (error: any) {
@@ -426,6 +549,28 @@ const deleteCategory = async (req: Request, res: Response) => {
     });
   }
 };
+
+const deleteBrand = async (req: Request, res: Response) => {
+  try {
+    const brandId = Number(req.params.id);
+
+    await attributesServices.deleteBrandFromDB(brandId);
+    //OK
+    res.status(200).json({
+      success: true,
+      message: "Delete brand successfully",
+    });
+  } catch (error: any) {
+    console.log("Error: ", error);
+    //Internal Server Error
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong!",
+      error: error,
+    });
+  }
+};
+
 const deleteTag = async (req: Request, res: Response) => {
   try {
     const tagId = Number(req.params.id);
@@ -493,16 +638,21 @@ export const attributesController = {
   createCategory,
   createSize,
   createColor,
+  createBrand,
   getAllCategory,
+  getAllBrand,
   getAllTag,
   getAllColor,
   getAllSize,
   getSingleTag,
+  getSingleBrand,
   updateCategory,
+  updateBrand,
   updateTag,
   updateSize,
   updateColor,
   deleteCategory,
+  deleteBrand,
   deleteTag,
   deleteColor,
   deleteSize,
