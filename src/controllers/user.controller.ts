@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import {
-  userUpdatePasswordValidation,
+  userChangePasswordValidation,
   userUpdateValidation,
   userValidationSchema,
 } from "../validations/user.validation";
@@ -11,54 +11,39 @@ import { secret } from "../config/refreshToken";
 import { verify } from "jsonwebtoken";
 import sendEmail from "./email.controller";
 import crypto from "crypto";
+
 const registerUser = async (req: Request, res: Response) => {
+  const { success, data, error } = await userValidationSchema.safeParse(
+    req.body
+  );
+  if (!success) {
+    res.status(400).json({
+      success: false,
+      errors: error.issues.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      })),
+    });
+    return;
+  }
+
   try {
-    const { success, data, error } = await userValidationSchema.safeParse(
-      req.body
-    );
-
-    if (!success) {
-      console.log("Error: ", error);
-      //Bad Request
-      res.status(400).json({
+    const existUser = await userServices.findUserByEmailFromDB(data.email);
+    if (existUser) {
+      res.status(409).json({
         success: false,
-        message: "Invalid request body",
+        message: "Email already exists",
       });
-    } else {
-      const existUser = await userServices.findUserByEmailFromDB(
-        req.body.email
-      );
-
-      // Already exists
-      if (existUser) {
-        //Conflict
-        res.status(409).json({
-          success: false,
-          message: "Email already exists",
-        });
-        return;
-      }
-
-      // Check password, if < 8 characters long
-      if (data.password.length < 8) {
-        //Bad Request
-        res.status(400).json({
-          success: false,
-          message: "Password must be at least 8 characters long.",
-        });
-        return;
-      }
-
-      await userServices.createAUserIntoDB(data);
-      //Created
-      res.status(201).json({
-        success: true,
-        message: "User created successfully",
-      });
+      return;
     }
+
+    await userServices.createAUserIntoDB(data);
+    res.status(201).json({
+      success: true,
+      message: "User created successfully",
+    });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
@@ -66,17 +51,23 @@ const registerUser = async (req: Request, res: Response) => {
   }
 };
 
-const loginUser = async (req: Request, res: Response) => {
+const loginAdmin = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
-
     //Check email
     const result = await userServices.findUserByEmailFromDB(email);
     if (!result) {
-      //Unauthorized
       res.status(401).json({
         success: false,
         message: "Invalid email or password",
+      });
+      return;
+    }
+
+    if (result.role !== "Admin") {
+      res.status(401).json({
+        success: false,
+        message: "You are not admin",
       });
       return;
     }
@@ -87,7 +78,6 @@ const loginUser = async (req: Request, res: Response) => {
       result.password
     );
     if (!isValidPassword) {
-      //Bad Request
       res.status(400).json({
         success: false,
         message: "Invalid password",
@@ -96,16 +86,12 @@ const loginUser = async (req: Request, res: Response) => {
     }
 
     const refreshToken = await generateRefreshToken(result.email);
-
     await userServices.updateRefreshTokenIntoDB(result.email, refreshToken);
-
     //Send cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       maxAge: 3 * 24 * 60 * 60 * 1000, // 3 day
     });
-
-    // OK
     res.status(200).json({
       success: true,
       message: "Login successfully",
@@ -119,8 +105,61 @@ const loginUser = async (req: Request, res: Response) => {
       accessToken: generateToken(result.email),
     });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong!",
+    });
+  }
+};
+
+const loginUser = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+    //Check email
+    const result = await userServices.findUserByEmailFromDB(email);
+    if (!result) {
+      res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+      return;
+    }
+
+    //Check password
+    const isValidPassword = await userServices.checkPassword(
+      password,
+      result.password
+    );
+    if (!isValidPassword) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid password",
+      });
+      return;
+    }
+
+    const refreshToken = await generateRefreshToken(result.email);
+    await userServices.updateRefreshTokenIntoDB(result.email, refreshToken);
+    //Send cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      maxAge: 3 * 24 * 60 * 60 * 1000, // 3 day
+    });
+    res.status(200).json({
+      success: true,
+      message: "Login successfully",
+      data: {
+        id: result.id,
+        name: result.name,
+        email: result.email,
+        phoneNumber: result.phoneNumber,
+        address: result.address,
+      },
+      accessToken: generateToken(result.email),
+    });
+  } catch (error: any) {
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
@@ -132,34 +171,31 @@ const handleRefreshToken = async (req: Request, res: Response) => {
   const cookie = req.cookies;
   //Check refresh token
   if (!cookie?.refreshToken) {
-    //Unauthorized
     res.status(401).json({
       success: false,
       message: "Unauthorized",
     });
     return;
   }
-
   const refreshToken = cookie.refreshToken;
-  //Find user by refresh token from db
-  const result = await userServices.findUserByRefreshTokenFromDB(refreshToken);
-
-  if (!result) {
-    //Unauthorized
-    res.status(401).json({
-      success: false,
-      message: "Unauthorized",
-    });
-    return;
-  }
 
   try {
+    //Find user by refresh token from db
+    const result = await userServices.findUserByRefreshTokenFromDB(
+      refreshToken
+    );
+    if (!result) {
+      res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+      return;
+    }
+
     const decoded = verify(refreshToken, secret) as {
       email: string;
     };
-
     if (result.email !== decoded.email) {
-      //Unauthorized
       res.status(401).json({
         success: false,
         message: "Unauthorized",
@@ -171,18 +207,18 @@ const handleRefreshToken = async (req: Request, res: Response) => {
     const accessToken = generateToken(result.email);
     res.json({ accessToken });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Unauthorized
-    res.status(401).json({ success: false, message: "Unauthorized" });
+    console.error("Error: ", error);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong!",
+    });
   }
 };
 
 const logoutUser = async (req: Request, res: Response) => {
   const cookie = req.cookies;
-
   //Check refresh token
   if (!cookie?.refreshToken) {
-    //Unauthorized
     res.status(401).json({
       success: false,
       message: "Unauthorized",
@@ -191,51 +227,60 @@ const logoutUser = async (req: Request, res: Response) => {
   }
 
   const refreshToken = cookie.refreshToken;
-  //Find user by refresh token from db
-  const result = await userServices.findUserByRefreshTokenFromDB(refreshToken);
 
-  if (!result) {
+  try {
+    //Find user by refresh token from db
+    const result = await userServices.findUserByRefreshTokenFromDB(
+      refreshToken
+    );
+
+    if (!result) {
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+      });
+      //No content
+      res.sendStatus(204);
+      return;
+    }
+
+    await userServices.deleteRefreshTokenFromDB(result.email);
     res.clearCookie("refreshToken", {
       httpOnly: true,
     });
-    //No content
     res.sendStatus(204);
-    return;
+  } catch (error: any) {
+    console.error("Error: ", error);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong!",
+    });
   }
-  console.log("hello");
-  await userServices.deleteRefreshTokenFromDB(result.email);
-  res.clearCookie("refreshToken", {
-    httpOnly: true,
-  });
-  //No content
-  res.sendStatus(204);
 };
 
 const updateAUser = async (req: Request, res: Response) => {
+  const { success, data, error } = await userUpdateValidation.safeParse(
+    req.body
+  );
+  if (!success) {
+    res.status(400).json({
+      success: false,
+      errors: error.issues.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      })),
+    });
+    return;
+  }
+
   try {
     const id = (req as any).user.id;
-
-    const { success, data, error } = await userUpdateValidation.safeParse(
-      req.body
-    );
-    if (!success) {
-      console.log("Error: ", error);
-      //Bad Request
-      res.status(400).json({
-        success: false,
-        message: "Invalid request body",
-      });
-    } else {
-      await userServices.updateUserIntoDB(id, data);
-      //OK
-      res.status(200).json({
-        success: true,
-        message: "Update user successfully",
-      });
-    }
+    await userServices.updateUserIntoDB(id, data);
+    res.status(200).json({
+      success: true,
+      message: "Update user successfully",
+    });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
@@ -244,54 +289,50 @@ const updateAUser = async (req: Request, res: Response) => {
 };
 
 const updatePassword = async (req: Request, res: Response) => {
+  const { success, data, error } = await userChangePasswordValidation.safeParse(
+    req.body
+  );
+  if (!success) {
+    res.status(400).json({
+      success: false,
+      errors: error.issues.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      })),
+    });
+    return;
+  }
+
   try {
     const email = (req as any).user.email;
-
     const user = await userServices.findUserByEmailFromDB(email);
     if (!user) {
-      // Not Found
       res.status(404).json({
         success: false,
         message: "No user found",
       });
       return;
     }
-
-    const { success, data, error } =
-      await userUpdatePasswordValidation.safeParse(req.body);
-
-    if (!success) {
-      console.log("Error: ", error);
-      //Bad Request
+    //Check password
+    const isValidPassword = await userServices.checkPassword(
+      data.oldPassword,
+      user.password
+    );
+    if (!isValidPassword) {
       res.status(400).json({
         success: false,
-        message: "Invalid request body",
+        message: "Invalid password",
       });
-    } else {
-      //Check password
-      const isValidPassword = await userServices.checkPassword(
-        data.oldPassword,
-        user.password
-      );
-      if (!isValidPassword) {
-        //Bad Request
-        res.status(400).json({
-          success: false,
-          message: "Invalid password",
-        });
-        return;
-      }
-
-      await userServices.updatePasswordIntoDB(email, data.newPassword);
-      //OK
-      res.status(200).json({
-        success: true,
-        message: "Update password successfully",
-      });
+      return;
     }
+
+    await userServices.updatePasswordIntoDB(email, data.newPassword);
+    res.status(200).json({
+      success: true,
+      message: "Update password successfully",
+    });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
@@ -302,11 +343,8 @@ const updatePassword = async (req: Request, res: Response) => {
 const forgotPasswordToken = async (req: Request, res: Response) => {
   try {
     const email = req.body.email;
-
     const user = await userServices.findUserByEmailFromDB(email);
-
     if (!user) {
-      // Not Found
       res.status(404).json({
         success: false,
         message: "No user found",
@@ -315,7 +353,6 @@ const forgotPasswordToken = async (req: Request, res: Response) => {
     }
 
     const resetToken = await userServices.createPasswordResetToken(user.email);
-
     const resetURL = `http://localhost:9000/api/user/reset-password/${resetToken}`;
     const data = {
       to: user.email,
@@ -338,13 +375,10 @@ const forgotPasswordToken = async (req: Request, res: Response) => {
       `,
     };
 
-    console.log(resetURL);
-
     await sendEmail(data);
     res.json({ success: true, message: "Reset password email sent" });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
@@ -371,14 +405,11 @@ const resetPassword = async (req: Request, res: Response) => {
     }
 
     await userServices.resetPasswordIntoDB(user.email, password);
-
-    // OK
     res
       .status(200)
       .json({ success: true, message: "Password reset successfully" });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
@@ -389,23 +420,13 @@ const resetPassword = async (req: Request, res: Response) => {
 const getAllUsers = async (req: Request, res: Response) => {
   try {
     const users = await userServices.findAllUsersFromDB();
-    if (!users) {
-      // Not Found
-      res.status(404).json({
-        success: false,
-        message: "No user found",
-      });
-      return;
-    }
-    //OK
     res.status(200).json({
       sucess: true,
       message: "Get all users successfully",
       data: users,
     });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
@@ -414,25 +435,24 @@ const getAllUsers = async (req: Request, res: Response) => {
 };
 
 const getAUser = async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (isNaN(id)) {
+    res.status(400).json({
+      success: false,
+      message: "Invalid user ID",
+    });
+    return;
+  }
+
   try {
-    const id = Number(req.params.id);
     const user = await userServices.findUserByIdFromDB(id);
-    if (!user) {
-      // Not Found
-      res.status(404).json({
-        success: false,
-        message: "No user found",
-      });
-      return;
-    }
-    //OK
-    res.status(200).json({
-      success: true,
-      message: "Get user successfully",
+    res.status(user ? 200 : 404).json({
+      success: !!user,
+      message: user ? "Get user successfully" : "No user found",
       data: user,
     });
   } catch (error: any) {
-    console.log("Error: ", error);
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
@@ -443,25 +463,19 @@ const getAUser = async (req: Request, res: Response) => {
 const deleteAUser = async (req: Request, res: Response) => {
   try {
     const id = (req as any).user.id;
-
     const user = await userServices.findUserByIdFromDB(id);
     if (!user) {
-      // Not Found
       res.status(404).json({
         success: false,
         message: "No user found",
       });
       return;
     }
+
     await userServices.deleteUserFromDB(id);
-    //OK
-    res.status(200).json({
-      success: true,
-      message: "Delete user successfully",
-    });
+    res.sendStatus(204);
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
@@ -481,4 +495,5 @@ export const userController = {
   updatePassword,
   forgotPasswordToken,
   resetPassword,
+  loginAdmin,
 };

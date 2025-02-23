@@ -7,21 +7,24 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
 const db = drizzle(config.db_url!);
+const date = new Date(Date.now());
+const dateExpires = new Date(Date.now() + 10 * 60 * 1000);
 
-//User
 const createAUserIntoDB = async (data: TUser) => {
   data.password = await bcrypt.hash(data.password, 10);
-  const result = await db.insert(users).values(data);
-  return result;
+  await db.insert(users).values(data);
 };
 
 const updatePasswordIntoDB = async (email: string, password: string) => {
   password = await bcrypt.hash(password, 10);
-  const result = await db
+  await db
     .update(users)
-    .set({ password: password })
+    .set({
+      password: password,
+      updatedAt: date,
+      passwordChangedAt: date,
+    })
     .where(eq(users.email, email));
-  return result;
 };
 
 const createPasswordResetToken = async (email: string) => {
@@ -30,7 +33,7 @@ const createPasswordResetToken = async (email: string) => {
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
-  const passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+  const passwordResetExpires = dateExpires;
 
   await db
     .update(users)
@@ -52,7 +55,6 @@ const checkPassword = async (inputPassword: string, dbPassword: string) => {
   return bcrypt.compare(inputPassword, dbPassword);
 };
 
-// Admin
 const findAllUsersFromDB = async () => {
   const result = await db.select().from(users);
   return result;
@@ -93,7 +95,8 @@ const resetPasswordIntoDB = async (email: string, password: string) => {
     .update(users)
     .set({
       password: password,
-      passwordChangedAt: new Date(),
+      updatedAt: date,
+      passwordChangedAt: date,
       passwordResetToken: undefined,
       passwordResetExpires: undefined,
     })
@@ -102,29 +105,26 @@ const resetPasswordIntoDB = async (email: string, password: string) => {
 };
 
 const deleteUserFromDB = async (id: number) => {
-  const result = await db.delete(users).where(eq(users.id, id));
-  return result;
+  await db.delete(users).where(eq(users.id, id));
 };
 
 const updateUserIntoDB = async (id: number, data: TUserUpdate) => {
-  const result = await db.update(users).set(data).where(eq(users.id, id));
-  return result;
+  data.updatedAt = date;
+  await db.update(users).set(data).where(eq(users.id, id));
 };
 
 const updateRefreshTokenIntoDB = async (email: string, token: string) => {
-  const result = await db
+  await db
     .update(users)
     .set({ refreshToken: token })
     .where(eq(users.email, email));
-  return result;
 };
 
 const deleteRefreshTokenFromDB = async (email: string) => {
-  const result = await db
+  await db
     .update(users)
     .set({ refreshToken: null })
     .where(eq(users.email, email));
-  return result;
 };
 
 export const userServices = {

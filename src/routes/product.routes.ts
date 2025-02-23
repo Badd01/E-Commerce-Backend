@@ -5,17 +5,22 @@ import { isAdmin, authMiddleware } from "../middlewares/auth.middleware";
 
 const router = express.Router();
 
-//Product
+//Product image
 router.post(
-  "/create",
+  "/create/image",
   authMiddleware,
   isAdmin,
-  productController.createProduct
+  uploadMiddleware.single("image"),
+  productController.createProductImage
 );
-router.get("/", productController.getAllProduct);
-router.get("/:id", productController.getSingleProduct);
-router.put("/:id", authMiddleware, isAdmin, productController.updateProduct);
-router.delete("/:id", authMiddleware, isAdmin, productController.deleteProduct);
+router.get("/image", productController.getAllProductImage);
+router.get("/image/:id", productController.getSingleProductImage);
+router.put(
+  "/image/:id",
+  authMiddleware,
+  isAdmin,
+  productController.updateProductImage
+);
 
 // Product variant
 router.post(
@@ -39,24 +44,20 @@ router.delete(
   isAdmin,
   productController.deleteProductVariant
 );
-//Product image
-router.post(
-  "/create/image",
-  authMiddleware,
-  isAdmin,
-  uploadMiddleware.single("image"),
-  productController.createProductImage
-);
-router.get("/image", productController.getAllProductImage);
-router.get("/image/:id", productController.getSingleProductImage);
-router.put(
-  "/image/:id",
-  authMiddleware,
-  isAdmin,
-  productController.updateProductImage
-);
 
 //Rating
-router.post("/rating/:id", authMiddleware, productController.ratingProduct);
+router.post("/rating", authMiddleware, productController.ratingProduct);
+
+//Product
+router.post(
+  "/create",
+  authMiddleware,
+  isAdmin,
+  productController.createProduct
+);
+router.get("/", productController.getAllProduct);
+router.get("/:id", productController.getSingleProduct);
+router.put("/:id", authMiddleware, isAdmin, productController.updateProduct);
+router.delete("/:id", authMiddleware, isAdmin, productController.deleteProduct);
 
 export const productRoutes = router;

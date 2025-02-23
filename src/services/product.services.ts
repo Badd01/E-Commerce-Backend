@@ -1,7 +1,11 @@
 import {
   TProduct,
+  TProductFilter,
   TProductImage,
+  TProductImageUpdate,
+  TProductUpdate,
   TProductVariant,
+  TProductVariantUpdate,
   TRating,
 } from "../interfaces/product.interface";
 import {
@@ -12,51 +16,40 @@ import {
 } from "../db/schema/product.schema";
 import { drizzle } from "drizzle-orm/node-postgres";
 import config from "../config";
-import { eq, and, lte, asc, desc } from "drizzle-orm";
+import { eq, and, lte, asc, desc, gt } from "drizzle-orm";
 
 const db = drizzle(config.db_url!);
+const date = new Date(Date.now());
 
 // Product
 const createAProductIntoDB = async (data: TProduct) => {
   await db.insert(products).values(data);
 };
-const getAllProductsFromDB = async (obj: {
-  tagId?: number;
-  brandId?: number;
-  price?: number;
-  sortBy?: "name" | "price" | "time";
-  sortOrder?: "asc" | "desc";
-  page?: number;
-}) => {
-  const data = db
+const getAllProductsFromDB = async (data: TProductFilter) => {
+  const result = db
     .select()
     .from(products)
     .where(
       and(
-        obj.tagId ? eq(products.tagId, obj.tagId) : undefined,
-        obj.brandId ? eq(products.brandId, obj.brandId) : undefined,
-        obj.price ? lte(products.price, obj.price) : undefined
+        data.tagId ? eq(products.tagId, data.tagId) : undefined,
+        data.brandId ? eq(products.brandId, data.brandId) : undefined
       )
     )
     .orderBy(
-      obj.sortBy === "name"
-        ? obj.sortOrder === "desc"
+      data.sortBy === "name"
+        ? data.sortOrder === "desc"
           ? desc(products.slug)
           : asc(products.slug)
-        : obj.sortBy === "price"
-        ? obj.sortOrder === "desc"
-          ? desc(products.price)
-          : asc(products.price)
-        : obj.sortBy === "time"
-        ? obj.sortOrder === "desc"
+        : data.sortBy === "time"
+        ? data.sortOrder === "desc"
           ? desc(products.createdAt)
           : asc(products.createdAt)
         : desc(products.createdAt)
     )
     .limit(10)
-    .offset(obj.page ? (obj.page - 1) * 10 : 0);
+    .offset(data.page ? (data.page - 1) * 10 : 0);
 
-  return data;
+  return result;
 };
 
 const getSingleProductFromDB = async (productId: number) => {
@@ -66,7 +59,8 @@ const getSingleProductFromDB = async (productId: number) => {
     .where(eq(products.id, productId));
   return data;
 };
-const updateProductIntoDB = async (productId: number, data: TProduct) => {
+const updateProductIntoDB = async (productId: number, data: TProductUpdate) => {
+  data.updatedAt = date;
   await db.update(products).set(data).where(eq(products.id, productId));
 };
 const deleteProductFromDB = async (productId: number) => {
@@ -88,10 +82,12 @@ const getSingleProductVariantFromDB = async (productVariantId: number) => {
     .where(eq(productVariants.id, productVariantId));
   return data;
 };
+
 const updateProductVariantIntoDB = async (
   productVariantId: number,
-  data: TProductVariant
+  data: TProductVariantUpdate
 ) => {
+  data.updatedAt = date;
   await db
     .update(productVariants)
     .set(data)
@@ -120,8 +116,9 @@ const getSingleProductImageFromDB = async (productImageId: number) => {
 };
 const updateProductImageIntoDB = async (
   productImageId: number,
-  data: TProductImage
+  data: TProductImageUpdate
 ) => {
+  data.updatedAt = date;
   await db
     .update(productImages)
     .set(data)
@@ -130,6 +127,7 @@ const updateProductImageIntoDB = async (
 
 // Rating
 const ratingProduct = async (data: TRating) => {
+  data.createdAt = date;
   await db.insert(ratings).values(data);
 };
 

@@ -5,7 +5,6 @@ interface TUser {
   phoneNumber: string;
   address: string;
   role?: "User" | "Admin";
-  revenue?: number;
   createdAt?: Date;
   updatedAt?: Date;
   refreshToken?: string;
@@ -15,9 +14,10 @@ interface TUser {
 }
 
 interface TUserUpdate {
-  name: string;
-  phoneNumber: string;
-  address: string;
+  name?: string;
+  phoneNumber?: string;
+  address?: string;
+  updatedAt?: Date;
 }
 
 interface TUserUpdatePassword {

@@ -12,12 +12,10 @@ const uploadToCloudinary = async (publicId: string, filePath: string) => {
       quality: "auto",
     });
 
-    return {
-      url: optimizeUrl,
-    };
+    return optimizeUrl;
   } catch (error: any) {
-    console.log("Error while uploading to cloudinary", error);
-    throw new Error("Error while uploading to cloudinary");
+    console.error("Error while uploading to cloudinary", error);
+    return null;
   }
 };
 
@@ -37,12 +35,10 @@ const updateToCloudinary = async (publicId: string, filePath: string) => {
       quality: "auto",
     });
 
-    return {
-      url: optimizeUrl,
-    };
+    return optimizeUrl;
   } catch (error) {
-    console.log("Error while updating to cloudinary", error);
-    throw new Error("Error while updating to cloudinary");
+    console.error("Error while updating to cloudinary", error);
+    return null;
   }
 };
 

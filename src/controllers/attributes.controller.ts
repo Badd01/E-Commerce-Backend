@@ -8,30 +8,30 @@ import {
 } from "../validations/attributes.validation";
 import { attributesServices } from "../services/attributes.services";
 
+// Create
 const createCategory = async (req: Request, res: Response) => {
-  try {
-    const { success, data, error } = await categoryValidationSchema.safeParse(
-      req.body
-    );
+  const { success, data, error } = await categoryValidationSchema.safeParse(
+    req.body
+  );
+  if (!success) {
+    res.status(400).json({
+      success: false,
+      errors: error.issues.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      })),
+    });
+    return;
+  }
 
-    if (!success) {
-      //Bad Request
-      res.status(400).json({
-        success: false,
-        message: "Invalid request body",
-        error: error,
-      });
-    } else {
-      await attributesServices.createACategoryIntoDB(data);
-      //Created
-      res.status(201).json({
-        success: true,
-        message: "Category created successfully",
-      });
-    }
+  try {
+    await attributesServices.createACategoryIntoDB(data);
+    res.status(201).json({
+      success: true,
+      message: "Category created successfully",
+    });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong",
@@ -40,29 +40,28 @@ const createCategory = async (req: Request, res: Response) => {
 };
 
 const createBrand = async (req: Request, res: Response) => {
-  try {
-    const { success, data, error } = await brandValidationSchema.safeParse(
-      req.body
-    );
+  const { success, data, error } = await brandValidationSchema.safeParse(
+    req.body
+  );
+  if (!success) {
+    res.status(400).json({
+      success: false,
+      errors: error.issues.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      })),
+    });
+    return;
+  }
 
-    if (!success) {
-      //Bad Request
-      res.status(400).json({
-        success: false,
-        message: "Invalid request body",
-        error: error,
-      });
-    } else {
-      await attributesServices.createABrandIntoDB(data);
-      //Created
-      res.status(201).json({
-        success: true,
-        message: "Brand created successfully",
-      });
-    }
+  try {
+    await attributesServices.createABrandIntoDB(data);
+    res.status(201).json({
+      success: true,
+      message: "Brand created successfully",
+    });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong",
@@ -71,29 +70,28 @@ const createBrand = async (req: Request, res: Response) => {
 };
 
 const createTag = async (req: Request, res: Response) => {
-  try {
-    const { success, data, error } = await tagValidationSchema.safeParse(
-      req.body
-    );
+  const { success, data, error } = await tagValidationSchema.safeParse(
+    req.body
+  );
+  if (!success) {
+    res.status(400).json({
+      success: false,
+      errors: error.issues.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      })),
+    });
+    return;
+  }
 
-    if (!success) {
-      //Bad Request
-      res.status(400).json({
-        success: false,
-        message: "Invalid request body",
-        error: error,
-      });
-    } else {
-      await attributesServices.createATagIntoDB(data);
-      //Created
-      res.status(201).json({
-        success: true,
-        message: "Tag created successfully",
-      });
-    }
+  try {
+    await attributesServices.createATagIntoDB(data);
+    res.status(201).json({
+      success: true,
+      message: "Tag created successfully",
+    });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong",
@@ -102,29 +100,28 @@ const createTag = async (req: Request, res: Response) => {
 };
 
 const createSize = async (req: Request, res: Response) => {
-  try {
-    const { success, data, error } = await sizeValidationSchema.safeParse(
-      req.body
-    );
+  const { success, data, error } = await sizeValidationSchema.safeParse(
+    req.body
+  );
+  if (!success) {
+    res.status(400).json({
+      success: false,
+      errors: error.issues.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      })),
+    });
+    return;
+  }
 
-    if (!success) {
-      //Bad Request
-      res.status(400).json({
-        success: false,
-        message: "Invalid request body",
-        error: error,
-      });
-    } else {
-      await attributesServices.createASizeIntoDB(data);
-      //Created
-      res.status(201).json({
-        success: true,
-        message: "Size created successfully",
-      });
-    }
+  try {
+    await attributesServices.createASizeIntoDB(data);
+    res.status(201).json({
+      success: true,
+      message: "Size created successfully",
+    });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong",
@@ -133,29 +130,28 @@ const createSize = async (req: Request, res: Response) => {
 };
 
 const createColor = async (req: Request, res: Response) => {
-  try {
-    const { success, data, error } = await colorValidationSchema.safeParse(
-      req.body
-    );
+  const { success, data, error } = await colorValidationSchema.safeParse(
+    req.body
+  );
+  if (!success) {
+    res.status(400).json({
+      success: false,
+      errors: error.issues.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      })),
+    });
+    return;
+  }
 
-    if (!success) {
-      //Bad Request
-      res.status(400).json({
-        success: false,
-        message: "Invalid request body",
-        error: error,
-      });
-    } else {
-      await attributesServices.createAColorIntoDB(data);
-      //Created
-      res.status(201).json({
-        success: true,
-        message: "Color created successfully",
-      });
-    }
+  try {
+    await attributesServices.createAColorIntoDB(data);
+    res.status(201).json({
+      success: true,
+      message: "Color created successfully",
+    });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong",
@@ -163,27 +159,17 @@ const createColor = async (req: Request, res: Response) => {
   }
 };
 
+// Get all
 const getAllCategory = async (req: Request, res: Response) => {
   try {
     const result = await attributesServices.getAllCategoryFromDB();
-
-    if (!result || result.length === 0) {
-      //Not Found
-      res.status(404).json({
-        success: false,
-        message: "No categories found",
-      });
-      return;
-    }
-    //OK
     res.status(200).json({
       success: true,
       message: "Get data categories successfully",
       data: result,
     });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong",
@@ -194,24 +180,13 @@ const getAllCategory = async (req: Request, res: Response) => {
 const getAllBrand = async (req: Request, res: Response) => {
   try {
     const result = await attributesServices.getAllBrandFromDB();
-
-    if (!result || result.length === 0) {
-      //Not Found
-      res.status(404).json({
-        success: false,
-        message: "No brand found",
-      });
-      return;
-    }
-    //OK
     res.status(200).json({
       success: true,
       message: "Get data brands successfully",
       data: result,
     });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong",
@@ -222,24 +197,13 @@ const getAllBrand = async (req: Request, res: Response) => {
 const getAllTag = async (req: Request, res: Response) => {
   try {
     const result = await attributesServices.getAllTagFromDB();
-
-    if (!result || result.length === 0) {
-      //Not Found
-      res.status(404).json({
-        success: false,
-        message: "No tags found",
-      });
-      return;
-    }
-    //OK
     res.status(200).json({
       success: true,
       message: "Get data tags successfully",
       data: result,
     });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong",
@@ -250,24 +214,13 @@ const getAllTag = async (req: Request, res: Response) => {
 const getAllColor = async (req: Request, res: Response) => {
   try {
     const result = await attributesServices.getAllColorFromDB();
-
-    if (!result || result.length === 0) {
-      //Not Found
-      res.status(404).json({
-        success: false,
-        message: "No colors found",
-      });
-      return;
-    }
-    //OK
     res.status(200).json({
       success: true,
       message: "Get data colors successfully",
       data: result,
     });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong",
@@ -278,24 +231,13 @@ const getAllColor = async (req: Request, res: Response) => {
 const getAllSize = async (req: Request, res: Response) => {
   try {
     const result = await attributesServices.getAllSizeFromDB();
-
-    if (!result || result.length === 0) {
-      //Not Found
-      res.status(404).json({
-        success: false,
-        message: "No sizes found",
-      });
-      return;
-    }
-    //OK
     res.status(200).json({
       success: true,
       message: "Get data sizes successfully",
       data: result,
     });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong",
@@ -303,29 +245,26 @@ const getAllSize = async (req: Request, res: Response) => {
   }
 };
 
+// Get single
 const getSingleTag = async (req: Request, res: Response) => {
+  const tagId = Number(req.params.id);
+  if (isNaN(tagId)) {
+    res.status(400).json({
+      success: false,
+      message: "Invalid tag id",
+    });
+    return;
+  }
+
   try {
-    const tagId = Number(req.params.id);
-
     const data = await attributesServices.getSingleTagFromDB(tagId);
-
-    if (!data) {
-      //Not Found
-      res.status(404).json({
-        success: false,
-        message: "No tag found",
-      });
-      return;
-    }
-    //OK
-    res.status(200).json({
-      success: true,
-      message: "Tag retrieved successfully",
+    res.status(data ? 200 : 404).json({
+      success: !!data,
+      message: data ? "Tag retrieved successfully" : "Tag not found",
       data: data,
     });
   } catch (error) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
@@ -334,28 +273,24 @@ const getSingleTag = async (req: Request, res: Response) => {
 };
 
 const getSingleBrand = async (req: Request, res: Response) => {
+  const brandId = Number(req.params.id);
+  if (isNaN(brandId)) {
+    res.status(400).json({
+      success: false,
+      message: "Invalid brand id",
+    });
+    return;
+  }
+
   try {
-    const brandId = Number(req.params.id);
-
     const data = await attributesServices.getSingleBrandFromDB(brandId);
-
-    if (!data) {
-      //Not Found
-      res.status(404).json({
-        success: false,
-        message: "No brand found",
-      });
-      return;
-    }
-    //OK
-    res.status(200).json({
-      success: true,
-      message: "Brand retrieved successfully",
+    res.status(data ? 200 : 404).json({
+      success: !!data,
+      message: data ? "Brand retrieved successfully" : "Brand not found",
       data: data,
     });
   } catch (error) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
@@ -363,272 +298,310 @@ const getSingleBrand = async (req: Request, res: Response) => {
   }
 };
 
+// Update
 const updateCategory = async (req: Request, res: Response) => {
-  try {
-    const categoryId = Number(req.params.id);
+  const categoryId = Number(req.params.id);
+  if (isNaN(categoryId)) {
+    res.status(400).json({
+      success: false,
+      message: "Invalid category id",
+    });
+    return;
+  }
 
-    const { success, data, error } = await categoryValidationSchema.safeParse(
-      req.body
-    );
-    if (!success) {
-      //Bad Request
-      res.status(400).json({
-        success: false,
-        message: "Invalid request body",
-        error: error,
-      });
-    } else {
-      await attributesServices.updateCategoryIntoDB(categoryId, data);
-      //OK
-      res.status(200).json({
-        success: true,
-        message: "Category updated successfuly",
-      });
-    }
+  const { success, data, error } = await categoryValidationSchema.safeParse(
+    req.body
+  );
+  if (!success) {
+    res.status(400).json({
+      success: false,
+      errors: error.issues.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      })),
+    });
+    return;
+  }
+
+  try {
+    await attributesServices.updateCategoryIntoDB(categoryId, data);
+    res.status(200).json({
+      success: true,
+      message: "Category updated successfuly",
+    });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
-      error: error,
     });
   }
 };
 
 const updateBrand = async (req: Request, res: Response) => {
-  try {
-    const brandId = Number(req.params.id);
+  const brandId = Number(req.params.id);
+  if (isNaN(brandId)) {
+    res.status(400).json({
+      success: false,
+      message: "Invalid brand id",
+    });
+    return;
+  }
 
-    const { success, data, error } = await brandValidationSchema.safeParse(
-      req.body
-    );
-    if (!success) {
-      //Bad Request
-      res.status(400).json({
-        success: false,
-        message: "Invalid request body",
-        error: error,
-      });
-    } else {
-      await attributesServices.updateBrandIntoDB(brandId, data);
-      //OK
-      res.status(200).json({
-        success: true,
-        message: "Brand updated successfuly",
-      });
-    }
+  const { success, data, error } = await brandValidationSchema.safeParse(
+    req.body
+  );
+  if (!success) {
+    res.status(400).json({
+      success: false,
+      errors: error.issues.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      })),
+    });
+    return;
+  }
+
+  try {
+    await attributesServices.updateBrandIntoDB(brandId, data);
+    res.status(200).json({
+      success: true,
+      message: "Brand updated successfuly",
+    });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
-      error: error,
     });
   }
 };
 
 const updateTag = async (req: Request, res: Response) => {
+  const tagId = Number(req.params.id);
+  if (isNaN(tagId)) {
+    res.status(400).json({
+      success: false,
+      message: "Invalid tag id",
+    });
+    return;
+  }
+
+  const { success, data, error } = await tagValidationSchema.safeParse(
+    req.body
+  );
+  if (!success) {
+    res.status(400).json({
+      success: false,
+      errors: error.issues.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      })),
+    });
+    return;
+  }
+
   try {
-    const tagId = Number(req.params.id);
-
-    const { success, data, error } = await tagValidationSchema.safeParse(
-      req.body
-    );
-    if (!success) {
-      //Bad Request
-      res.status(400).json({
-        success: false,
-        message: "Invalid request body",
-        error: error,
-      });
-    } else {
-      await attributesServices.updateTagIntoDB(tagId, data);
-
-      //OK
-      res.status(200).json({
-        success: true,
-        message: "Tag updated successfuly",
-      });
-    }
+    await attributesServices.updateTagIntoDB(tagId, data);
+    res.status(200).json({
+      success: true,
+      message: "Tag updated successfuly",
+    });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
-      error: error,
     });
   }
 };
 
 const updateSize = async (req: Request, res: Response) => {
+  const sizeId = Number(req.params.id);
+  if (isNaN(sizeId)) {
+    res.status(400).json({
+      success: false,
+      message: "Invalid size id",
+    });
+    return;
+  }
+
+  const { success, data, error } = await sizeValidationSchema.safeParse(
+    req.body
+  );
+  if (!success) {
+    res.status(400).json({
+      success: false,
+      errors: error.issues.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      })),
+    });
+    return;
+  }
+
   try {
-    const sizeId = Number(req.params.id);
-
-    const { success, data, error } = await sizeValidationSchema.safeParse(
-      req.body
-    );
-    if (!success) {
-      //Bad Request
-      res.status(400).json({
-        success: false,
-        message: "Invalid request body",
-        error: error,
-      });
-    } else {
-      await attributesServices.updateSizeIntoDB(sizeId, data);
-
-      //OK
-      res.status(200).json({
-        success: true,
-        message: "Size updated successfuly",
-      });
-    }
+    await attributesServices.updateSizeIntoDB(sizeId, data);
+    res.status(200).json({
+      success: true,
+      message: "Size updated successfuly",
+    });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
-      error: error,
     });
   }
 };
 
 const updateColor = async (req: Request, res: Response) => {
-  try {
-    const colorId = Number(req.params.id);
+  const colorId = Number(req.params.id);
+  if (isNaN(colorId)) {
+    res.status(400).json({
+      success: false,
+      message: "Invalid color id",
+    });
+    return;
+  }
 
-    const { success, data, error } = await colorValidationSchema.safeParse(
-      req.body
-    );
-    if (!success) {
-      //Bad Request
-      res.status(400).json({
-        success: false,
-        message: "Invalid request body",
-        error: error,
-      });
-    } else {
-      await attributesServices.updateColorIntoDB(colorId, data);
-      //OK
-      res.status(200).json({
-        success: true,
-        message: "Color updated successfuly",
-      });
-    }
+  const { success, data, error } = await colorValidationSchema.safeParse(
+    req.body
+  );
+  if (!success) {
+    res.status(400).json({
+      success: false,
+      errors: error.issues.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      })),
+    });
+    return;
+  }
+
+  try {
+    await attributesServices.updateColorIntoDB(colorId, data);
+    res.status(200).json({
+      success: true,
+      message: "Color updated successfuly",
+    });
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
-      error: error,
     });
   }
 };
-const deleteCategory = async (req: Request, res: Response) => {
-  try {
-    const categoryId = Number(req.params.id);
 
-    await attributesServices.deleteCategoryFromDB(categoryId);
-    //OK
-    res.status(200).json({
-      success: true,
-      message: "Delete category successfully",
+// Delete
+const deleteCategory = async (req: Request, res: Response) => {
+  const categoryId = Number(req.params.id);
+  if (isNaN(categoryId)) {
+    res.status(400).json({
+      success: false,
+      message: "Invalid category id",
     });
+    return;
+  }
+
+  try {
+    await attributesServices.deleteCategoryFromDB(categoryId);
+    res.sendStatus(204);
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
-      error: error,
     });
   }
 };
 
 const deleteBrand = async (req: Request, res: Response) => {
-  try {
-    const brandId = Number(req.params.id);
-
-    await attributesServices.deleteBrandFromDB(brandId);
-    //OK
-    res.status(200).json({
-      success: true,
-      message: "Delete brand successfully",
+  const brandId = Number(req.params.id);
+  if (isNaN(brandId)) {
+    res.status(400).json({
+      success: false,
+      message: "Invalid brand id",
     });
+    return;
+  }
+
+  try {
+    await attributesServices.deleteBrandFromDB(brandId);
+    res.sendStatus(204);
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
+
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
-      error: error,
     });
   }
 };
 
 const deleteTag = async (req: Request, res: Response) => {
-  try {
-    const tagId = Number(req.params.id);
-
-    await attributesServices.deleteTagFromDB(tagId);
-    //OK
-    res.status(200).json({
-      success: true,
-      message: "Delete tag successfully",
+  const tagId = Number(req.params.id);
+  if (isNaN(tagId)) {
+    res.status(400).json({
+      success: false,
+      message: "Invalid tag id",
     });
+    return;
+  }
+
+  try {
+    await attributesServices.deleteTagFromDB(tagId);
+    res.sendStatus(204);
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
-      error: error,
     });
   }
 };
 
 const deleteSize = async (req: Request, res: Response) => {
-  try {
-    const sizeId = Number(req.params.id);
-
-    await attributesServices.deleteSizeFromDB(sizeId);
-    //OK
-    res.status(200).json({
-      success: true,
-      message: "Delete product successfully",
+  const sizeId = Number(req.params.id);
+  if (isNaN(sizeId)) {
+    res.status(400).json({
+      success: false,
+      message: "Invalid size id",
     });
+    return;
+  }
+
+  try {
+    await attributesServices.deleteSizeFromDB(sizeId);
+    res.sendStatus(204);
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
-      error: error,
     });
   }
 };
-const deleteColor = async (req: Request, res: Response) => {
-  try {
-    const colorId = Number(req.params.id);
 
-    await attributesServices.deleteColorFromDB(colorId);
-    //OK
-    res.status(200).json({
-      success: true,
-      message: "Delete product successfully",
+const deleteColor = async (req: Request, res: Response) => {
+  const colorId = Number(req.params.id);
+  if (isNaN(colorId)) {
+    res.status(400).json({
+      success: false,
+      message: "Invalid color id",
     });
+    return;
+  }
+
+  try {
+    await attributesServices.deleteColorFromDB(colorId);
+    res.sendStatus(204);
   } catch (error: any) {
-    console.log("Error: ", error);
-    //Internal Server Error
+    console.error("Error: ", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong!",
-      error: error,
     });
   }
 };

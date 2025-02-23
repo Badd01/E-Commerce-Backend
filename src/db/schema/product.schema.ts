@@ -2,6 +2,7 @@ import { pgTable as table } from "drizzle-orm/pg-core";
 import * as t from "drizzle-orm/pg-core";
 import { tags, sizes, colors, brands } from "./attributes.schema";
 import { users } from "./user.schema";
+import { sql } from "drizzle-orm";
 
 const products = table(
   "products",
@@ -13,15 +14,20 @@ const products = table(
       .integer("tag_id")
       .notNull()
       .references(() => tags.id, { onDelete: "cascade" }),
-    price: t.integer().notNull(),
     brandId: t
       .integer("brand_id")
       .notNull()
       .references(() => brands.id, { onDelete: "cascade" }),
-    totalRating: t.real(),
-    sold: t.integer().default(0),
-    createdAt: t.timestamp("created_at").defaultNow(),
-    updatedAt: t.timestamp("updated_at").defaultNow(),
+    totalRating: t.real("total_rating"),
+    sold: t.integer("total_sold").notNull().default(0),
+    createdAt: t
+      .timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: t
+      .timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
   },
   (table) => [t.uniqueIndex("slug_name_unique").on(table.slug)]
 );
@@ -42,10 +48,17 @@ const productVariants = table(
       .integer("color_id")
       .notNull()
       .references(() => colors.id),
+    price: t.integer().notNull(),
     quantity: t.integer().notNull(),
     isStock: t.boolean("is_stock").notNull(),
-    createdAt: t.timestamp("created_at").defaultNow(),
-    updatedAt: t.timestamp("updated_at").defaultNow(),
+    createdAt: t
+      .timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: t
+      .timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
   },
   (table) => [
     t
@@ -68,6 +81,14 @@ const productImages = table(
       .references(() => colors.id, { onDelete: "cascade" }),
     imageUrl: t.text("product_image_path").notNull(),
     publicId: t.text("public_id").notNull(),
+    createdAt: t
+      .timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: t
+      .timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
   },
   (table) => [t.uniqueIndex("image_unique").on(table.publicId)]
 );
@@ -85,6 +106,14 @@ const ratings = table(
       .notNull()
       .references(() => products.id, { onDelete: "cascade" }),
     rating: t.integer().notNull(),
+    createdAt: t
+      .timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: t
+      .timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
   },
   (table) => [t.uniqueIndex("rating_unique").on(table.userId, table.productId)]
 );
