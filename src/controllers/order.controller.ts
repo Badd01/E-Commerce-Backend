@@ -267,6 +267,34 @@ const updateOrder = async (req: Request, res: Response) => {
   }
 
   try {
+    if (data.status === "cancelled") {
+      const orderItem = await orderServices.findOrderItemByOrderIdFromDB(
+        orderId
+      );
+      for (const item of orderItem) {
+        const productVariant =
+          await productServices.getSingleProductVariantFromDB(
+            item.productVariantId
+          );
+        const product = await productServices.getSingleProductFromDB(
+          productVariant.productId
+        );
+
+        const dataProductVariant = {
+          quantity: productVariant.quantity + item.quantity,
+        };
+        await productServices.updateProductVariantIntoDB(
+          item.productVariantId,
+          dataProductVariant
+        );
+
+        const dataProduct = {
+          sold: product.sold - item.quantity,
+        };
+        await productServices.updateProductIntoDB(product.id, dataProduct);
+      }
+    }
+
     const result = await orderServices.updateOrderIntoDB(orderId, data);
     res.status(200).json({
       success: true,
