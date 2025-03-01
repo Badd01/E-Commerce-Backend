@@ -32,7 +32,7 @@ const registerUser = async (req: Request, res: Response) => {
     if (existUser) {
       res.status(409).json({
         success: false,
-        message: "Email already exists",
+        message: "Email đã tồn tại",
       });
       return;
     }
@@ -51,68 +51,6 @@ const registerUser = async (req: Request, res: Response) => {
   }
 };
 
-const loginAdmin = async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body;
-    //Check email
-    const result = await userServices.findUserByEmailFromDB(email);
-    if (!result) {
-      res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
-      return;
-    }
-
-    if (result.role !== "Admin") {
-      res.status(401).json({
-        success: false,
-        message: "You are not admin",
-      });
-      return;
-    }
-
-    //Check password
-    const isValidPassword = await userServices.checkPassword(
-      password,
-      result.password
-    );
-    if (!isValidPassword) {
-      res.status(400).json({
-        success: false,
-        message: "Invalid password",
-      });
-      return;
-    }
-
-    const refreshToken = await generateRefreshToken(result.email);
-    await userServices.updateRefreshTokenIntoDB(result.email, refreshToken);
-    //Send cookie
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      maxAge: 3 * 24 * 60 * 60 * 1000, // 3 day
-    });
-    res.status(200).json({
-      success: true,
-      message: "Login successfully",
-      data: {
-        id: result.id,
-        name: result.name,
-        email: result.email,
-        phoneNumber: result.phoneNumber,
-        address: result.address,
-      },
-      accessToken: generateToken(result.email),
-    });
-  } catch (error: any) {
-    console.error("Error: ", error);
-    res.status(500).json({
-      success: false,
-      message: "Something went wrong!",
-    });
-  }
-};
-
 const loginUser = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -121,7 +59,7 @@ const loginUser = async (req: Request, res: Response) => {
     if (!result) {
       res.status(401).json({
         success: false,
-        message: "Invalid email or password",
+        message: "Sai email hoặc mật khẩu",
       });
       return;
     }
@@ -134,7 +72,7 @@ const loginUser = async (req: Request, res: Response) => {
     if (!isValidPassword) {
       res.status(400).json({
         success: false,
-        message: "Invalid password",
+        message: "Sai mật khẩu",
       });
       return;
     }
@@ -144,17 +82,19 @@ const loginUser = async (req: Request, res: Response) => {
     //Send cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
+      secure: true,
       maxAge: 3 * 24 * 60 * 60 * 1000, // 3 day
     });
     res.status(200).json({
       success: true,
       message: "Login successfully",
-      data: {
+      user: {
         id: result.id,
         name: result.name,
         email: result.email,
         phoneNumber: result.phoneNumber,
         address: result.address,
+        role: result.role,
       },
       accessToken: generateToken(result.email),
     });
@@ -237,6 +177,7 @@ const logoutUser = async (req: Request, res: Response) => {
     if (!result) {
       res.clearCookie("refreshToken", {
         httpOnly: true,
+        secure: true,
       });
       //No content
       res.sendStatus(204);
@@ -495,5 +436,4 @@ export const userController = {
   updatePassword,
   forgotPasswordToken,
   resetPassword,
-  loginAdmin,
 };

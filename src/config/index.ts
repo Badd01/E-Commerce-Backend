@@ -8,4 +8,5 @@ export default {
   db_url: process.env.DATABASE_URL,
   mail_id: process.env.MAIL_ID,
   mail_password: process.env.MAIL_PASSWORD,
+  backend_url: process.env.BACKEND_URL,
 };

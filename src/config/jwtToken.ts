@@ -6,7 +6,7 @@ export const secret = process.env.JWT_SECRET || "secret";
 
 const generateToken = (email: string) => {
   //Refresh Token
-  return jwt.sign({ email }, secret, { expiresIn: "3h" });
+  return jwt.sign({ email }, secret, { expiresIn: "1h" });
 };
 
 export default generateToken;

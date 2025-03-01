@@ -13,7 +13,7 @@ import {
   products,
   productVariants,
   ratings,
-} from "../db/schema/product.schema";
+} from "../db/schema/prosduct.schema";
 import { drizzle } from "drizzle-orm/node-postgres";
 import config from "../config";
 import { eq, and, lte, asc, desc, gt } from "drizzle-orm";

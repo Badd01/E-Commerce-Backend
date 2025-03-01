@@ -7,8 +7,7 @@ const router = express.Router();
 
 router.post("/register", userController.registerUser);
 router.post("/login", userController.loginUser);
-router.post("/admin-login", userController.loginAdmin);
-router.get("/logout", userController.logoutUser);
+router.delete("/logout", userController.logoutUser);
 router.get("/refresh", userController.handleRefreshToken);
 
 //Password
@@ -25,12 +24,12 @@ router.get("/order/:id", authMiddleware, orderController.getOrderDetail);
 router.put("/order/:id", authMiddleware, orderController.updateOrder);
 
 //User
-router.put("/me", authMiddleware, userController.updateAUser);
+router.patch("/me", authMiddleware, userController.updateAUser);
 router.delete("/me", authMiddleware, userController.deleteAUser);
 router.put("/password", authMiddleware, userController.updatePassword);
 
 //Admin
-router.get("/all-users", authMiddleware, isAdmin, userController.getAllUsers);
+router.get("/users", authMiddleware, isAdmin, userController.getAllUsers);
 router.get("/:id", authMiddleware, isAdmin, userController.getAUser);
 
 export const userRoutes = router;
