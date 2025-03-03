@@ -16,7 +16,10 @@ export const authenticate = (
   next: NextFunction
 ) => {
   const token = req.headers.authorization?.split(" ")[1];
-  if (!token) return res.status(401).json({ message: "Unauthorized" });
+  if (!token) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload & {
@@ -24,7 +27,8 @@ export const authenticate = (
       role: string;
     };
     if (!decoded.id || !decoded.role) {
-      return res.status(401).json({ message: "Invalid token payload" });
+      res.status(401).json({ message: "Invalid token payload" });
+      return;
     }
     req.user = { id: decoded.id, role: decoded.role };
     next();
@@ -35,7 +39,8 @@ export const authenticate = (
 
 export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   if (req.user?.role !== ADMIN) {
-    return res.status(403).json({ message: "Forbidden" });
+    res.status(403).json({ message: "Forbidden" });
+    return;
   }
   next();
 };

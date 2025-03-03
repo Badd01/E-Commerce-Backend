@@ -3,7 +3,7 @@ import * as t from "drizzle-orm/pg-core";
 import { users } from "./user.schema";
 import { products } from "./product.schema";
 
-const statusEnum = pgEnum("status_enum", [
+export const statusEnum = pgEnum("status_enum", [
   "Pending",
   "Shipped",
   "Delivered",

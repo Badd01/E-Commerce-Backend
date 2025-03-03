@@ -3,7 +3,7 @@ import multer, { FileFilterCallback } from "multer";
 import path from "path";
 
 // Product image
-const storageImage = multer.diskStorage({
+const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "src/db/uploads");
   },
@@ -15,8 +15,8 @@ const storageImage = multer.diskStorage({
   },
 });
 
-// Check file filter
-const checkFileFilter = (
+// Only accept image
+const fileFilter = (
   req: Request,
   file: Express.Multer.File,
   cb: FileFilterCallback
@@ -29,9 +29,6 @@ const checkFileFilter = (
 };
 
 export const uploadMiddleware = multer({
-  storage: storageImage,
-  fileFilter: checkFileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB
-  },
+  storage,
+  fileFilter,
 });

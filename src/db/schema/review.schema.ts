@@ -3,7 +3,7 @@ import * as t from "drizzle-orm/pg-core";
 import { users } from "./user.schema";
 import { products } from "./product.schema";
 
-export const reviews = table("revies", {
+export const reviews = table("reviews", {
   id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
   userId: t
     .integer()

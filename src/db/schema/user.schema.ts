@@ -14,5 +14,26 @@ export const users = table("users", {
   role: userRoleEnum().notNull().default("User"),
   createdAt: t.timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: t.timestamp("updated_at", { withTimezone: true }).defaultNow(),
-  refreshToken: t.text("refresh_token"),
+});
+
+export const passwordResetTokens = table("password_reset_tokens", {
+  id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+  userId: t
+    .integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  token: t.text().notNull(),
+  expiresAt: t.timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: t.timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const refreshTokens = table("refresh_tokens", {
+  id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
+  userId: t
+    .integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  token: t.text().notNull(),
+  expiresAt: t.timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: t.timestamp("created_at", { withTimezone: true }).defaultNow(),
 });

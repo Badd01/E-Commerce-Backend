@@ -14,7 +14,7 @@ cloudinary.config({
 const uploadToCloudinary = async (
   slug: string,
   filePath: string
-): Promise<string | null> => {
+): Promise<string> => {
   try {
     await cloudinary.uploader.upload(filePath, {
       public_id: slug,
@@ -27,16 +27,15 @@ const uploadToCloudinary = async (
     });
 
     return optimizeUrl;
-  } catch (error: any) {
-    console.error("Error while uploading to cloudinary", error);
-    return null;
+  } catch (error) {
+    throw new Error(`Error uploading ${slug} from Cloudinary: ${error}`);
   }
 };
 
 const updateToCloudinary = async (
   slug: string,
   filePath: string
-): Promise<string | null> => {
+): Promise<string> => {
   try {
     // Delete
     await cloudinary.uploader.destroy(slug);
@@ -54,9 +53,16 @@ const updateToCloudinary = async (
 
     return optimizeUrl;
   } catch (error) {
-    console.error("Error while updating to cloudinary", error);
-    return null;
+    throw new Error(`Error updating ${slug} from Cloudinary: ${error}`);
   }
 };
 
-export { uploadToCloudinary, updateToCloudinary };
+const deleteFromCloudinary = async (slug: string): Promise<void> => {
+  try {
+    await cloudinary.uploader.destroy(slug);
+  } catch (error) {
+    throw new Error(`Error deleting ${slug} from Cloudinary: ${error}`);
+  }
+};
+
+export { uploadToCloudinary, updateToCloudinary, deleteFromCloudinary };

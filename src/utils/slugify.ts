@@ -17,8 +17,7 @@ export const generateUniqueSlug = async (name: string): Promise<string> => {
     const existing = await db
       .select()
       .from(products)
-      .where(eq(products.slug, slug))
-      .limit(1);
+      .where(eq(products.slug, slug));
 
     if (!existing[0]) break;
 
