@@ -154,17 +154,54 @@ const updateOrderStatus = async (
   }
 };
 
-const getOrdersByAdmin = async (req: Request, res: Response): Promise<void> => {
+const getOrder = async (req: Request, res: Response): Promise<void> => {
   try {
+    const orderId = Number(req.params.id);
     const order = await db
       .select()
       .from(orders)
+      .where(eq(orders.id, orderId))
       .innerJoin(orderItems, eq(orders.id, orderItems.orderId))
       .innerJoin(products, eq(orderItems.productId, products.id));
 
     res.status(200).json({ order });
   } catch (error) {
+    console.error("Error getting order: ", error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+const getOrdersByAdmin = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const order = await db.select().from(orders);
+
+    res.status(200).json({ order });
+  } catch (error) {
     console.error("Error getting orders: ", error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+const getRevenue = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const revenue = await db
+      .select({ totalAmount: orders.totalAmount })
+      .from(orders)
+      .where(eq(orders.status, "Delivered"));
+
+    if (!revenue?.length) {
+      res.json({ totalRevenue: 0 });
+      return;
+    }
+
+    const totalRevenue = revenue.reduce(
+      (prev, curr) => prev + curr.totalAmount,
+      0
+    );
+
+    res.status(200).json({ totalRevenue });
+  } catch (error) {
+    console.error("Error calculating revenue:", error);
     res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -174,4 +211,6 @@ export const ordersController = {
   getOrdersByUser,
   getOrdersByAdmin,
   updateOrderStatus,
+  getOrder,
+  getRevenue,
 };

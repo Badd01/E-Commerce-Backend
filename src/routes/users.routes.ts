@@ -4,15 +4,16 @@ import { authenticate, isAdmin } from "../middlewares/authenticate.middleware";
 
 const router = express.Router();
 
-//User
-router.post("/review", authenticate, usersController.createReview);
-router.get("/me", authenticate, usersController.getUser);
-router.put("/me", authenticate, usersController.updateUser);
-router.delete("/me", authenticate, usersController.deleteUser);
-router.put("/me/password", authenticate, usersController.changePassword);
-
-//Admin
 router.get("/all-user", authenticate, isAdmin, usersController.getAllUser);
-router.get("/revenue", authenticate, isAdmin, usersController.getRevenue);
+router.put("/update", authenticate, usersController.updateUser);
+router.put("/update/password", authenticate, usersController.changePassword);
+router.put(
+  "/update/role/:id",
+  authenticate,
+  isAdmin,
+  usersController.updateRoleUser
+);
+router.get("/:id", authenticate, usersController.getUser);
+router.delete("/:id", authenticate, isAdmin, usersController.deleteUser);
 
 export const usersRoutes = router;

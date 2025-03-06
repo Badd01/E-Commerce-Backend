@@ -5,6 +5,7 @@ import { uploadMiddleware } from "../middlewares/upload.middleware";
 
 const router = express.Router();
 
+router.post("/review", authenticate, productsController.createReview);
 router.post(
   "/",
   authenticate,

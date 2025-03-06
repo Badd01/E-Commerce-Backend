@@ -29,17 +29,17 @@ import { generateTokens } from "../utils/generateToken";
 
 const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, email, password } = registerSchema.parse(req.body); //Validation
+    const data = registerSchema.parse(req.body); //Validation
     const existingUser = (
-      await db.select().from(users).where(eq(users.email, email))
+      await db.select().from(users).where(eq(users.email, data.email))
     )[0];
     if (existingUser) {
       res.status(409).json({ message: "Email already exists" }); //Conflict
       return;
     }
 
-    const hashedPassword = await hashPassword(password);
-    await db.insert(users).values({ name, email, password: hashedPassword });
+    const hashedPassword = await hashPassword(data.password);
+    await db.insert(users).values({ ...data, password: hashedPassword });
     res.status(201).json({ message: "Registered successfully" });
   } catch (error) {
     console.error("Error register: ", error);
@@ -63,7 +63,7 @@ const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const { accessToken, refreshToken } = generateTokens(user.id, user.role);
+    const { token, refreshToken } = generateTokens(user.id, user.role);
 
     await db.insert(refreshTokens).values({
       userId: user.id,
@@ -79,8 +79,11 @@ const login = async (req: Request, res: Response): Promise<void> => {
 
     res.status(200).json({
       message: "Logged in successfully",
-      userName: user.name,
-      accessToken,
+      user: {
+        id: user.id,
+        name: user.name,
+      },
+      token,
     });
   } catch (error) {
     console.error("Error login: ", error);
@@ -127,6 +130,7 @@ const refreshToken = async (req: Request, res: Response) => {
         .from(refreshTokens)
         .where(eq(refreshTokens.token, refreshToken))
     )[0];
+
     if (!tokenRecord || tokenRecord.expiresAt < new Date()) {
       res.status(401).json({ message: "Invalid or expired refresh token" });
       return;
@@ -143,8 +147,13 @@ const refreshToken = async (req: Request, res: Response) => {
       return;
     }
 
-    const { accessToken } = generateTokens(user.id, user.role);
-    res.json({ accessToken });
+    const { token } = generateTokens(user.id, user.role);
+    res.status(200).json({
+      message: "Refreshed token",
+      data: {
+        token,
+      },
+    });
   } catch (error) {
     console.error("Error when handle refresh token: ", error);
     res.status(500).json({ message: "Something went wrong" });

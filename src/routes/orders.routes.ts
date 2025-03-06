@@ -4,14 +4,23 @@ import { authenticate, isAdmin } from "../middlewares/authenticate.middleware";
 
 const router = express.Router();
 
+router.get("/revenue", authenticate, isAdmin, ordersController.getRevenue);
 router.post("/create", authenticate, ordersController.createOrder);
-router.get("/", authenticate, ordersController.getOrdersByUser);
-router.get("/admin", authenticate, isAdmin, ordersController.getOrdersByAdmin);
+
+router.get(
+  "/all-order",
+  authenticate,
+  isAdmin,
+  ordersController.getOrdersByAdmin
+);
+
+router.get("/order/:id", authenticate, isAdmin, ordersController.getOrder);
 router.put(
-  "/update",
+  "/order/:id",
   authenticate,
   isAdmin,
   ordersController.updateOrderStatus
 );
+router.get("/:id", authenticate, ordersController.getOrdersByUser);
 
 export const ordersRoutes = router;

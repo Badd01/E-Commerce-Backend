@@ -33,6 +33,7 @@ export const authenticate = (
     req.user = { id: decoded.id, role: decoded.role };
     next();
   } catch (error) {
+    console.log("Error verifying token: ", error);
     res.status(401).json({ message: "Invalid token" });
   }
 };

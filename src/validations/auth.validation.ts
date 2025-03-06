@@ -32,6 +32,12 @@ export const registerSchema = z.object({
     required_error: "Address is required",
     invalid_type_error: "Address must be a string",
   }),
+  role: z
+    .enum(["User", "Admin"], {
+      required_error: "Role is required",
+      invalid_type_error: "Role must be a enum: User, Admin",
+    })
+    .optional(),
 });
 
 export const loginSchema = z.object({

@@ -21,6 +21,15 @@ export const updateUserSchema = z.object({
     .optional(),
 });
 
+export const updateRoleSchema = z.object({
+  role: z
+    .enum(["Admin", "User"], {
+      required_error: "Role is required",
+      invalid_type_error: "Role must be a enum: Admin, User",
+    })
+    .optional(),
+});
+
 export const changePasswordSchema = z.object({
   oldPassword: z.string({
     required_error: "Old password is required",
