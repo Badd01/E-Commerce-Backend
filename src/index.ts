@@ -8,6 +8,7 @@ import { productsRoutes } from "./routes/products.routes";
 import { cartsRoutes } from "./routes/carts.routes";
 import { ordersRoutes } from "./routes/orders.routes";
 import { PORT } from "./utils/config";
+import { shopRoutes } from "./routes/shop.routes";
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use("/api/products", productsRoutes);
 app.use("/api/carts", cartsRoutes);
 app.use("/api/orders", ordersRoutes);
 app.use("/api/users", usersRoutes);
+app.use("/api/shop", shopRoutes);
 
 app.all("*", (req, res) => {
   res.status(404).json({ message: "Page Not Found" });

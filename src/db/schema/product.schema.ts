@@ -1,7 +1,6 @@
 import { pgTable as table } from "drizzle-orm/pg-core";
 import * as t from "drizzle-orm/pg-core";
-import * as c from "./category.schema";
-import * as b from "./base.schema";
+import * as s from "./shop.schema";
 
 export const products = table("products", {
   id: t.integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -13,27 +12,19 @@ export const products = table("products", {
   categoryId: t
     .integer()
     .notNull()
-    .references(() => c.categories.id),
+    .references(() => s.categories.id, { onDelete: "cascade" }),
   tagId: t
     .integer()
     .notNull()
-    .references(() => c.tags.id),
+    .references(() => s.tags.id, { onDelete: "cascade" }),
   colorId: t
     .integer()
     .notNull()
-    .references(() => b.colors.id),
-  seasonId: t
-    .integer()
-    .notNull()
-    .references(() => b.seasons.id),
+    .references(() => s.colors.id, { onDelete: "cascade" }),
   yearId: t
     .integer()
     .notNull()
-    .references(() => b.years.id),
-  purposeId: t
-    .integer()
-    .notNull()
-    .references(() => b.purposes.id),
+    .references(() => s.years.id, { onDelete: "cascade" }),
   createdAt: t.timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: t.timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });

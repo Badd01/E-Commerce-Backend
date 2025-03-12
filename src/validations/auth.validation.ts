@@ -1,10 +1,12 @@
 import { z } from "zod";
 
 export const registerSchema = z.object({
-  name: z.string({
-    required_error: "Name is required",
-    invalid_type_error: "Name must be a string",
-  }),
+  name: z
+    .string({
+      required_error: "Name is required",
+      invalid_type_error: "Name must be a string",
+    })
+    .min(1, { message: "Name cannot be empty" }),
   email: z
     .string({
       required_error: "Email is required",
@@ -28,10 +30,12 @@ export const registerSchema = z.object({
     .regex(/^\d{10,11}$/, {
       message: "Invalid phone number",
     }),
-  address: z.string({
-    required_error: "Address is required",
-    invalid_type_error: "Address must be a string",
-  }),
+  address: z
+    .string({
+      required_error: "Address is required",
+      invalid_type_error: "Address must be a string",
+    })
+    .min(1, { message: "Address cannot be empty" }),
   role: z
     .enum(["User", "Admin"], {
       required_error: "Role is required",

@@ -1,10 +1,13 @@
 import { z } from "zod";
 
 export const orderSchema = z.object({
-  userId: z.number({
-    required_error: "User id is required",
-    invalid_type_error: "User id must be a number",
-  }),
+  userId: z
+    .number({
+      required_error: "User id is required",
+      invalid_type_error: "User id must be a number",
+    })
+    .int({ message: "User id must be a integer" })
+    .positive({ message: "User id must be > 0" }),
   totalAmount: z.number({
     required_error: "Total amount is required",
     invalid_type_error: "Total amount must be a number",

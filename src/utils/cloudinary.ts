@@ -16,17 +16,19 @@ const uploadToCloudinary = async (
   filePath: string
 ): Promise<string> => {
   try {
-    await cloudinary.uploader.upload(filePath, {
+    const result = await cloudinary.uploader.upload(filePath, {
       public_id: slug,
+      transformation: {
+        fetch_format: "auto",
+        quality: "auto",
+        crop: "auto",
+        gravity: "auto",
+        width: 500,
+        height: 500,
+      },
     });
 
-    // Optimize delivery by resizing and applying auto-format and auto-quality
-    const optimizeUrl = cloudinary.url(slug, {
-      fetch_format: "auto",
-      quality: "auto",
-    });
-
-    return optimizeUrl;
+    return result.secure_url;
   } catch (error) {
     throw new Error(`Error uploading ${slug} from Cloudinary: ${error}`);
   }
@@ -34,6 +36,7 @@ const uploadToCloudinary = async (
 
 const updateToCloudinary = async (
   slug: string,
+  newSlug: string,
   filePath: string
 ): Promise<string> => {
   try {
@@ -41,19 +44,21 @@ const updateToCloudinary = async (
     await cloudinary.uploader.destroy(slug);
 
     //Upload
-    await cloudinary.uploader.upload(filePath, {
-      public_id: slug,
+    const result = await cloudinary.uploader.upload(filePath, {
+      public_id: newSlug,
+      transformation: {
+        fetch_format: "auto",
+        quality: "auto",
+        crop: "auto",
+        gravity: "auto",
+        width: 500,
+        height: 500,
+      },
     });
 
-    // Optimize delivery by resizing and applying auto-format and auto-quality
-    const optimizeUrl = cloudinary.url(slug, {
-      fetch_format: "auto",
-      quality: "auto",
-    });
-
-    return optimizeUrl;
+    return result.secure_url;
   } catch (error) {
-    throw new Error(`Error updating ${slug} from Cloudinary: ${error}`);
+    throw new Error(`Error updating ${newSlug} from Cloudinary: ${error}`);
   }
 };
 

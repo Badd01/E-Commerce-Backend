@@ -14,19 +14,14 @@ router.post(
   productsController.createProduct
 );
 router.get("/", productsController.getProducts);
-router.get("/:slug", productsController.getProductBySlug);
-router.put(
-  "/:slug",
+router.get("/:id", productsController.getProductById);
+router.patch(
+  "/:id",
   authenticate,
   isAdmin,
   uploadMiddleware.single("image"),
   productsController.updateProduct
 );
-router.delete(
-  "/:slug",
-  authenticate,
-  isAdmin,
-  productsController.deleteProduct
-);
+router.delete("/:id", authenticate, isAdmin, productsController.deleteProduct);
 
 export const productsRoutes = router;

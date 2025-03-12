@@ -8,23 +8,29 @@ import {
   updateUserSchema,
   updateRoleSchema,
   changePasswordSchema,
+  userIdSchema,
 } from "../validations/users.validation";
 // User
 const getUser = async (req: Request, res: Response): Promise<void> => {
-  const userId = Number(req.params.id);
-  if (isNaN(userId)) {
-    res.status(400).json({ message: "Invalid user ID" });
-    return;
-  }
   try {
-    const user = (await db.select().from(users).where(eq(users.id, userId)))[0];
-    if (!user) {
+    const { id: userId } = userIdSchema.parse({ id: Number(req.params.id) });
+    const data = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .then((res) => res[0]);
+    if (!data) {
       res.status(404).json({ message: "User not found" });
       return;
     }
-    res.status(200).json({ data: user });
+    res.status(200).json({ data });
   } catch (error) {
     console.error("Error get user: ", error);
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ message: error.errors[0].message });
+      return;
+    }
+
     res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -32,16 +38,17 @@ const getUser = async (req: Request, res: Response): Promise<void> => {
 const updateUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const data = updateUserSchema.parse(req.body);
-    const updateUser = (
-      await db.update(users).set(data).where(eq(users.id, userId)).returning()
-    )[0];
-    res
-      .status(200)
-      .json({ message: "Profile updated successfully", data: updateUser });
+    const result = updateUserSchema.parse(req.body);
+    const data = await db
+      .update(users)
+      .set(result)
+      .where(eq(users.id, userId))
+      .returning()
+      .then((res) => res[0]);
+    res.status(200).json({ message: "Profile updated successfully", data });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.status(400).json(error.errors[0]);
+      res.status(400).json({ message: error.errors[0].message });
       return;
     }
 
@@ -76,7 +83,7 @@ const changePassword = async (req: Request, res: Response): Promise<void> => {
   } catch (error) {
     console.error("Error change password: ", error);
     if (error instanceof z.ZodError) {
-      res.status(400).json(error.errors[0]);
+      res.status(400).json({ message: error.errors[0].message });
       return;
     }
 
@@ -87,8 +94,8 @@ const changePassword = async (req: Request, res: Response): Promise<void> => {
 // Admin
 const getAllUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const allUser = await db.select().from(users);
-    res.status(200).json({ data: allUser });
+    const data = await db.select().from(users);
+    res.status(200).json({ data });
   } catch (error) {
     console.error("Error get all user: ", error);
     res.status(500).json({ message: "Something went wrong" });
@@ -97,45 +104,54 @@ const getAllUser = async (req: Request, res: Response): Promise<void> => {
 
 const updateRoleUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = Number(req.params.id);
-    if (!userId) {
-      res.status(400).json({ message: "Invalid user ID" });
+    const { id: userId } = userIdSchema.parse({ id: Number(req.params.id) });
+    if (req.user!.id === userId || userId === 1) {
+      res.status(400).json({ message: "You can't update role this user" });
       return;
     }
-    const data = updateRoleSchema.parse(req.body);
-    const updateUser = (
-      await db
-        .update(users)
-        .set({ role: data.role })
-        .where(eq(users.id, userId))
-        .returning()
-    )[0];
-    res
-      .status(200)
-      .json({ message: "Role updated successfully", data: updateUser });
+    const result = updateRoleSchema.parse(req.body);
+    const data = await db
+      .update(users)
+      .set({ role: result.role })
+      .where(eq(users.id, userId))
+      .returning()
+      .then((res) => res[0]);
+    res.status(200).json({ message: "Role updated successfully", data });
   } catch (error) {
     console.error("Error update role user: ", error);
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ message: error.errors[0].message });
+      return;
+    }
     res.status(500).json({ message: "Something went wrong" });
   }
 };
 
 const deleteUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = Number(req.params.id);
+    const { id: userId } = userIdSchema.parse({ id: Number(req.params.id) });
     const id = req.user!.id;
-    if (!userId) {
-      res.status(400).json({ message: "Invalid user ID" });
-      return;
-    }
     if (id === userId) {
       res.status(400).json({ message: "You can't delete yourself" });
       return;
     }
     // Delete user => auto delete refresh token because of cascade
-    await db.delete(users).where(eq(users.id, userId));
+    const data = await db
+      .delete(users)
+      .where(eq(users.id, userId))
+      .returning()
+      .then((res) => res[0]);
+    if (!data) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
     res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     console.error("Error delete user: ", error);
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ message: error.errors[0].message });
+      return;
+    }
     res.status(500).json({ message: "Something went wrong" });
   }
 };

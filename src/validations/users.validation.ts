@@ -22,12 +22,10 @@ export const updateUserSchema = z.object({
 });
 
 export const updateRoleSchema = z.object({
-  role: z
-    .enum(["Admin", "User"], {
-      required_error: "Role is required",
-      invalid_type_error: "Role must be a enum: Admin, User",
-    })
-    .optional(),
+  role: z.enum(["Admin", "User"], {
+    required_error: "Role is required",
+    invalid_type_error: "Role must be a enum: Admin, User",
+  }),
 });
 
 export const changePasswordSchema = z.object({
@@ -46,13 +44,30 @@ export const changePasswordSchema = z.object({
     }),
 });
 
-export const reviewSchema = z.object({
+export const userIdSchema = z.object({
+  id: z
+    .number({
+      required_error: "User id is required",
+      invalid_type_error: "User id must be a number",
+    })
+    .int({ message: "User id must be a integer" })
+    .positive({ message: "User id must be > 0" }),
+});
+
+export const reviewsSchema = z.object({
+  productId: z
+    .number({
+      required_error: "Product id is required",
+      invalid_type_error: "Product id must be a number",
+    })
+    .int({ message: "Product id must be a integer" })
+    .positive({ message: "Product id must be > 0" }),
   rating: z
     .number({
       required_error: "Rating is required",
       invalid_type_error: "Rating must be a number",
     })
-    .int()
+    .int({ message: "Rating must be a integer" })
     .min(1, { message: "Rating must be between 1 and 5" })
     .max(5, { message: "Rating must be between 1 and 5" }),
   comment: z
@@ -61,16 +76,4 @@ export const reviewSchema = z.object({
       invalid_type_error: "Comment must be a string",
     })
     .optional(),
-  productId: z
-    .number({
-      required_error: "Product id is required",
-      invalid_type_error: "Product id must be a number",
-    })
-    .int(),
-  userId: z
-    .number({
-      required_error: "User id is required",
-      invalid_type_error: "User id must be a number",
-    })
-    .int(),
 });

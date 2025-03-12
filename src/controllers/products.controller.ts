@@ -7,12 +7,21 @@ import {
   updateToCloudinary,
   uploadToCloudinary,
 } from "../utils/cloudinary";
-import { productSchema } from "../validations/products.validation";
+import {
+  productSchema,
+  productsIdSchema,
+} from "../validations/products.validation";
 import { generateUniqueSlug } from "../utils/slugify";
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
 import { reviews } from "../db/schema/review.schema";
 import { orderItems, orders } from "../db/schema/order.schema";
-import { reviewSchema } from "../validations/users.validation";
+import { reviewsSchema } from "../validations/users.validation";
+import fs from "fs";
+import { categories, tags, colors, years } from "../db/schema/shop.schema";
+
+type TImage = {
+  imageUrl: string;
+};
 
 const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -30,187 +39,284 @@ const getProducts = async (req: Request, res: Response): Promise<void> => {
 
     const sortOrder = req.query.sortOrder === "asc" ? "asc" : "desc";
 
-    const productList = await db
+    const data = await db
       .select()
       .from(products)
+      .innerJoin(categories, eq(categories.id, products.categoryId))
+      .innerJoin(tags, eq(tags.id, products.tagId))
+      .innerJoin(colors, eq(colors.id, products.colorId))
+      .innerJoin(years, eq(years.id, products.yearId))
+      .innerJoin(productImages, eq(productImages.productId, products.id))
       .orderBy(
         sortOrder === "asc" ? asc(products[sortBy]) : desc(products[sortBy])
       )
       .limit(limit)
       .offset(offset);
 
-    const total = (await db.select().from(products)).length;
+    const totalItems = await db
+      .select({ count: count() })
+      .from(products)
+      .then((result) => result[0]?.count || 0);
 
-    const productIdList = productList.map((product) => product.id);
-    const imageList = await db
-      .select({
-        productId: productImages.productId,
-        imageUrl: productImages.imageUrl,
-      })
-      .from(productImages)
-      .where(inArray(productImages.productId, productIdList));
+    const totalPages = Math.ceil(totalItems / limit);
 
-    const productWithImageList = productList.map((product) => ({
-      ...product,
-      image: imageList.filter((image) => image.productId === product.id),
-    }));
-
-    res.status(200).json({ products: productWithImageList, total, page });
+    res.status(200).json({
+      data,
+      pagination: {
+        currentPage: page,
+        totalItems,
+        totalPages,
+      },
+    });
   } catch (error) {
     console.error("Error getting products: ", error);
     res.status(500).json({ message: "Something went wrong" });
   }
 };
 
-const getProductBySlug = async (req: Request, res: Response): Promise<void> => {
+const getProductById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { slug } = req.params;
-    const product = (
-      await db.select().from(products).where(eq(products.slug, slug))
-    )[0];
+    const { id: productId } = productsIdSchema.parse({
+      id: Number(req.params.id),
+    });
+
+    const product = await db
+      .select()
+      .from(products)
+      .where(eq(products.id, productId))
+      .innerJoin(categories, eq(categories.id, products.categoryId))
+      .innerJoin(tags, eq(tags.id, products.tagId))
+      .innerJoin(colors, eq(colors.id, products.colorId))
+      .innerJoin(years, eq(years.id, products.yearId))
+      .then((res) => res[0]);
 
     // Slug unique
     if (!product) {
       res.status(404).json({ message: "Product not found" });
       return;
     }
+    console.log(product);
 
-    const image = (
-      await db
-        .select({ imageUrl: productImages.imageUrl })
-        .from(productImages)
-        .where(eq(productImages.productId, product.id))
-    )[0];
-
-    if (!image) {
-      res.status(404).json({ message: "Product image not found" });
-      return;
-    }
+    const image = await db
+      .select({ imageUrl: productImages.imageUrl })
+      .from(productImages)
+      .where(eq(productImages.productId, productId))
+      .then((res) => res[0]);
 
     const review = await db
       .select()
       .from(reviews)
-      .where(eq(reviews.productId, product.id));
+      .where(eq(reviews.productId, productId));
 
-    res.status(200).json({ product, image, review });
+    res
+      .status(200)
+      .json({ data: { ...product, image: image.imageUrl }, review });
   } catch (error) {
     console.error("Error getting product: ", error);
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ message: error.errors[0] });
+      return;
+    }
     res.status(500).json({ message: "Something went wrong" });
   }
 };
 
 // Admin
 const createProduct = async (req: Request, res: Response): Promise<void> => {
+  let imagePublicId: string | null = null;
   try {
-    const data = productSchema.parse(req.body);
-    const slug = await generateUniqueSlug(data.name);
-    const product = (
-      await db
+    const result = productSchema.parse({
+      ...req.body,
+      price: Number(req.body.price),
+      stock: Number(req.body.stock),
+      categoryId: Number(req.body.categoryId),
+      tagId: Number(req.body.tagId),
+      colorId: Number(req.body.colorId),
+      yearId: Number(req.body.yearId),
+    });
+    if (!req.file) {
+      res.status(400).json({ message: "Image is required" });
+      return;
+    }
+    const slug = await generateUniqueSlug(result.name, products);
+    imagePublicId = slug;
+    const imageUrl = await uploadToCloudinary(slug, req.file.path);
+
+    // Transaction to create product and image auto rollback if error
+    const data = await db.transaction(async (tx) => {
+      const product = await tx
         .insert(products)
-        .values({ ...data, slug })
+        .values({ ...result, slug })
         .returning()
-    )[0];
+        .then((res) => res[0]);
 
-    if (req.file) {
-      const imageUrl = await uploadToCloudinary(slug, req.file.path);
-      if (!imageUrl) {
-        res.status(500).json({ message: "Error while uploading image" });
-        return;
-      }
+      const image = await tx
+        .insert(productImages)
+        .values({
+          productId: product.id,
+          imageUrl,
+          imagePublicId: slug,
+        })
+        .returning({
+          imageUrl: productImages.imageUrl,
+        })
+        .then((res) => res[0]);
+      return { ...product, image: image.imageUrl };
+    });
 
-      await db.insert(productImages).values({
-        productId: product.id,
-        imageUrl,
-        imagePublicId: slug,
-      });
+    res.status(201).json({ message: "Product created successfully", data });
+  } catch (error: any) {
+    console.error("Error creating product: ", error);
+    if (imagePublicId) {
+      await deleteFromCloudinary(imagePublicId);
+    }
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ message: error.errors[0] });
+      return;
     }
 
-    res.status(201).json({ product });
-  } catch (error) {
-    console.error("Error creating product: ", error);
-    if (error instanceof z.ZodError) {
-      res.status(400).json(error.errors[0]);
+    if (error.code === "23505") {
+      res.status(409).json({ message: "Duplicate name" });
       return;
     }
 
     res.status(500).json({ message: "Something went wrong" });
+  } finally {
+    if (req.file) {
+      fs.unlinkSync(req.file.path);
+    }
   }
 };
 
 const updateProduct = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { slug } = req.params;
-    const data = productSchema.partial().parse(req.body); // partial() make all properties optional
-    const updatedProduct = (
-      await db
-        .update(products)
-        .set(data)
-        .where(eq(products.slug, slug))
-        .returning()
-    )[0];
+    const { id: productId } = productsIdSchema.parse({
+      id: Number(req.params.id),
+    });
+    const result = productSchema.parse({
+      ...req.body,
+      price: Number(req.body.price),
+      stock: Number(req.body.stock),
+      categoryId: Number(req.body.categoryId),
+      tagId: Number(req.body.tagId),
+      colorId: Number(req.body.colorId),
+      yearId: Number(req.body.yearId),
+    });
 
-    //Slug unique
-    if (!updatedProduct) {
+    const oldProduct = await db
+      .select({
+        name: products.name,
+        slug: products.slug,
+        imageUrl: productImages.imageUrl,
+      })
+      .from(products)
+      .innerJoin(productImages, eq(products.id, productImages.productId))
+      .where(eq(products.id, productId))
+      .then((res) => res[0]);
+
+    if (!oldProduct) {
       res.status(404).json({ message: "Product not found" });
       return;
     }
 
-    if (req.file) {
-      const imageUrl = await updateToCloudinary(slug, req.file.path);
-      if (!imageUrl) {
-        res.status(500).json({ message: "Error while updating image" });
-        return;
-      }
-      await db.update(productImages).set({
-        imageUrl,
-        imagePublicId: slug,
-      });
+    let newSlug: string | undefined;
+    if (result.name !== oldProduct.name) {
+      newSlug = await generateUniqueSlug(result.name, products);
     }
 
-    res.status(200).json({ updatedProduct });
-  } catch (error) {
+    const product = await db
+      .update(products)
+      .set({
+        ...result,
+        ...(newSlug && { slug: newSlug }), // Optional newSlug if name is updated, return false if newSlug is undefined => no update
+        updatedAt: new Date(),
+      })
+      .where(eq(products.id, productId))
+      .returning()
+      .then((res) => res[0]);
+
+    let image = oldProduct.imageUrl;
+
+    if (req.file) {
+      const imageUrl = await updateToCloudinary(
+        oldProduct.slug,
+        newSlug || oldProduct.slug,
+        req.file.path
+      );
+
+      await db
+        .update(productImages)
+        .set({
+          imageUrl,
+          ...(newSlug && { imagePublicId: newSlug }),
+        })
+        .where(eq(productImages.productId, productId));
+
+      image = imageUrl;
+    }
+    res.status(200).json({
+      message: "Product updated successfully",
+      data: { ...product, image },
+    });
+  } catch (error: any) {
     console.error("Error updating product: ", error);
     if (error instanceof z.ZodError) {
-      res.status(400).json(error.errors[0]);
+      res.status(400).json({ message: error.errors[0] });
+      return;
+    }
+
+    if (error.code === "23505") {
+      res.status(409).json({ message: "Duplicate name" });
       return;
     }
 
     res.status(500).json({ message: "Something went wrong" });
+  } finally {
+    if (req.file) {
+      fs.unlinkSync(req.file.path);
+    }
   }
 };
 
 const deleteProduct = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { slug } = req.params;
+    const { id: productId } = productsIdSchema.parse({
+      id: Number(req.params.id),
+    });
 
     // delete product => auto delete product image because of cascade
-    const deletedProduct = (
-      await db.delete(products).where(eq(products.slug, slug)).returning()
-    )[0];
+    const data = await db
+      .delete(products)
+      .where(eq(products.id, productId))
+      .returning()
+      .then((res) => res[0]);
 
-    if (!deletedProduct) {
+    if (!data) {
       res.status(404).json({ message: "Product not found" });
       return;
     }
 
-    await deleteFromCloudinary(slug);
+    await deleteFromCloudinary(data.slug);
 
-    res.sendStatus(204);
+    res.status(200).json({ message: "Deleted product successfully", data });
   } catch (error) {
     console.error("Error deleting product: ", error);
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ message: error.errors[0] });
+      return;
+    }
     res.status(500).json({ message: "Something went wrong" });
   }
 };
 
 const createReview = async (req: Request, res: Response): Promise<void> => {
-  const productId = Number(req.body.productId);
-  const rating = Number(req.body.rating);
-  if (!productId || !rating) {
-    res.status(400).json({ message: "Invalid product ID or rating" });
-    return;
-  }
   try {
-    const comment = req.body;
+    const { productId, rating, comment } = reviewsSchema.parse({
+      productId: Number(req.params.id),
+      rating: Number(req.body.rating),
+      comment: req.body.comment,
+    });
+
     const userId = req.user!.id;
     const order = await db
       .select()
@@ -225,20 +331,15 @@ const createReview = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const reviewData = reviewSchema.parse({
-      userId,
-      productId,
-      rating,
-      comment,
-    });
+    const reviewData = { productId, userId, rating, comment };
 
-    await db.insert(reviews).values(reviewData);
+    const data = await db.insert(reviews).values(reviewData);
 
-    res.status(201).json({ message: "Review added" });
+    res.status(201).json({ message: "Review added", data });
   } catch (error) {
     console.error("Error creating review:", error);
     if (error instanceof z.ZodError) {
-      res.status(400).json(error.errors[0]);
+      res.status(400).json({ message: error.errors[0] });
       return;
     }
     res.status(500).json({ message: "Something went wrong" });
@@ -248,7 +349,7 @@ const createReview = async (req: Request, res: Response): Promise<void> => {
 export const productsController = {
   createProduct,
   getProducts,
-  getProductBySlug,
+  getProductById,
   updateProduct,
   deleteProduct,
   createReview,

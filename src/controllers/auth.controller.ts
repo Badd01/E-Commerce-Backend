@@ -29,22 +29,22 @@ import { generateTokens } from "../utils/generateToken";
 
 const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const data = registerSchema.parse(req.body); //Validation
+    const result = registerSchema.parse(req.body); //Validation
     const existingUser = (
-      await db.select().from(users).where(eq(users.email, data.email))
+      await db.select().from(users).where(eq(users.email, result.email))
     )[0];
     if (existingUser) {
       res.status(409).json({ message: "Email already exists" }); //Conflict
       return;
     }
 
-    const hashedPassword = await hashPassword(data.password);
-    await db.insert(users).values({ ...data, password: hashedPassword });
+    const hashedPassword = await hashPassword(result.password);
+    await db.insert(users).values({ ...result, password: hashedPassword });
     res.status(201).json({ message: "Registered successfully" });
   } catch (error) {
     console.error("Error register: ", error);
     if (error instanceof z.ZodError) {
-      res.status(400).json(error.errors[0]); // Error when validation fails
+      res.status(400).json({ message: error.errors[0].message }); // Error when validation fails
       return;
     }
 
@@ -54,19 +54,25 @@ const register = async (req: Request, res: Response): Promise<void> => {
 
 const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = loginSchema.parse(req.body); //Validation
-    const user = (
-      await db.select().from(users).where(eq(users.email, email))
+    const result = loginSchema.parse(req.body); //Validation
+    const data = (
+      await db.select().from(users).where(eq(users.email, result.email))
     )[0];
-    if (!user?.password || !(await comparePassword(password, user.password))) {
+    if (
+      !data?.password ||
+      !(await comparePassword(result.password, data.password))
+    ) {
       res.status(401).json({ message: "Invalid credentials" });
       return;
     }
 
-    const { token, refreshToken } = generateTokens(user.id, user.role);
+    // Delete all refresh tokens of the user if server crashes
+    await db.delete(refreshTokens).where(eq(refreshTokens.userId, data.id));
+
+    const { token, refreshToken } = generateTokens(data.id, data.role);
 
     await db.insert(refreshTokens).values({
-      userId: user.id,
+      userId: data.id,
       token: refreshToken,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 day
     });
@@ -79,16 +85,15 @@ const login = async (req: Request, res: Response): Promise<void> => {
 
     res.status(200).json({
       message: "Logged in successfully",
-      user: {
-        id: user.id,
-        name: user.name,
+      data: {
+        name: data.name,
       },
       token,
     });
   } catch (error) {
     console.error("Error login: ", error);
     if (error instanceof z.ZodError) {
-      res.status(400).json(error.errors[0]); // Error when validation fails
+      res.status(400).json({ message: error.errors[0].message }); // Error when validation fails
       return;
     }
 
@@ -131,28 +136,34 @@ const refreshToken = async (req: Request, res: Response) => {
         .where(eq(refreshTokens.token, refreshToken))
     )[0];
 
-    if (!tokenRecord || tokenRecord.expiresAt < new Date()) {
-      res.status(401).json({ message: "Invalid or expired refresh token" });
+    if (!tokenRecord) {
+      res.status(401).json({ message: "Invalid refresh token" });
+      return;
+    }
+    if (tokenRecord.expiresAt < new Date()) {
+      await db
+        .delete(refreshTokens)
+        .where(eq(refreshTokens.token, refreshToken));
+      res.status(401).json({ message: "Expired refresh token" });
       return;
     }
 
     const decoded = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET) as {
       id: number;
     };
-    const user = (
+
+    const data = (
       await db.select().from(users).where(eq(users.id, decoded.id))
     )[0];
-    if (!user) {
+    if (!data) {
       res.status(401).json({ message: "User not found" });
       return;
     }
 
-    const { token } = generateTokens(user.id, user.role);
+    const { token } = generateTokens(data.id, data.role);
     res.status(200).json({
       message: "Refreshed token",
-      data: {
-        token,
-      },
+      token,
     });
   } catch (error) {
     console.error("Error when handle refresh token: ", error);
@@ -202,12 +213,12 @@ const googleCallback = async (req: Request, res: Response): Promise<void> => {
 
 const forgotPassword = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email } = forgotPasswordSchema.parse(req.body);
-    const user = (
-      await db.select().from(users).where(eq(users.email, email))
+    const result = forgotPasswordSchema.parse(req.body);
+    const data = (
+      await db.select().from(users).where(eq(users.email, result.email))
     )[0];
 
-    if (!user) {
+    if (!data) {
       res.status(404).json({ message: "Email not found" });
       return;
     }
@@ -217,19 +228,19 @@ const forgotPassword = async (req: Request, res: Response): Promise<void> => {
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     await db.insert(passwordResetTokens).values({
-      userId: user.id,
+      userId: data.id,
       token: hashedToken,
       expiresAt,
     });
 
-    await sendEmail(email, token);
+    await sendEmail(result.email, token);
     res.status(200).json({
       message: "Send email successfully",
     });
   } catch (error) {
     console.error("Error forgot password: ", error);
     if (error instanceof z.ZodError) {
-      res.status(400).json(error.errors[0]);
+      res.status(400).json({ message: error.errors[0].message });
       return;
     }
 
@@ -269,7 +280,7 @@ const resetPassword = async (req: Request, res: Response): Promise<void> => {
   } catch (error) {
     console.error("Error reset password: ", error);
     if (error instanceof z.ZodError) {
-      res.status(400).json(error.errors[0]);
+      res.status(400).json({ message: error.errors[0].message });
       return;
     }
 
