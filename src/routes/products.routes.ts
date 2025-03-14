@@ -14,7 +14,7 @@ router.post(
   productsController.createProduct
 );
 router.get("/", productsController.getProducts);
-router.get("/:id", productsController.getProductById);
+router.get("/:slug", productsController.getProductBySlug);
 router.patch(
   "/:id",
   authenticate,

@@ -9,7 +9,7 @@ import {
 } from "../utils/cloudinary";
 import {
   productSchema,
-  productsIdSchema,
+  productIdSchema,
 } from "../validations/products.validation";
 import { generateUniqueSlug } from "../utils/slugify";
 import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
@@ -37,7 +37,7 @@ const getProducts = async (req: Request, res: Response): Promise<void> => {
     const sortBy =
       (req.query.sortBy as keyof typeof validColumns) || "createdAt"; // type: name, price,createdAt => key: name || price || createdAt
 
-    const sortOrder = req.query.sortOrder === "asc" ? "asc" : "desc";
+    const sortOrder = req.query.sortOrder === "desc" ? "desc" : "asc";
 
     const data = await db
       .select()
@@ -48,7 +48,7 @@ const getProducts = async (req: Request, res: Response): Promise<void> => {
       .innerJoin(years, eq(years.id, products.yearId))
       .innerJoin(productImages, eq(productImages.productId, products.id))
       .orderBy(
-        sortOrder === "asc" ? asc(products[sortBy]) : desc(products[sortBy])
+        sortOrder === "desc" ? desc(products[sortBy]) : asc(products[sortBy])
       )
       .limit(limit)
       .offset(offset);
@@ -74,49 +74,46 @@ const getProducts = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-const getProductById = async (req: Request, res: Response): Promise<void> => {
+const getProductBySlug = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id: productId } = productsIdSchema.parse({
-      id: Number(req.params.id),
-    });
+    const { slug } = req.params;
+    console.log(slug);
 
     const product = await db
-      .select()
+      .select({
+        name: products.name,
+        description: products.description,
+        price: products.price,
+        stock: products.stock,
+        category: categories.name,
+        tag: tags.name,
+        color: colors.name,
+        year: years.name,
+        image: productImages.imageUrl,
+        // reviewsRating: reviews.rating,
+        // reviewsComment: reviews.comment,
+      })
       .from(products)
-      .where(eq(products.id, productId))
+      .where(eq(products.slug, slug))
       .innerJoin(categories, eq(categories.id, products.categoryId))
       .innerJoin(tags, eq(tags.id, products.tagId))
       .innerJoin(colors, eq(colors.id, products.colorId))
       .innerJoin(years, eq(years.id, products.yearId))
+      .innerJoin(productImages, eq(productImages.productId, products.id))
+      // .innerJoin(reviews, eq(reviews.productId, products.id))
       .then((res) => res[0]);
+
+    console.log(product);
 
     // Slug unique
     if (!product) {
       res.status(404).json({ message: "Product not found" });
       return;
     }
-    console.log(product);
 
-    const image = await db
-      .select({ imageUrl: productImages.imageUrl })
-      .from(productImages)
-      .where(eq(productImages.productId, productId))
-      .then((res) => res[0]);
-
-    const review = await db
-      .select()
-      .from(reviews)
-      .where(eq(reviews.productId, productId));
-
-    res
-      .status(200)
-      .json({ data: { ...product, image: image.imageUrl }, review });
+    res.status(200).json(product);
   } catch (error) {
     console.error("Error getting product: ", error);
-    if (error instanceof z.ZodError) {
-      res.status(400).json({ message: error.errors[0] });
-      return;
-    }
     res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -190,7 +187,7 @@ const createProduct = async (req: Request, res: Response): Promise<void> => {
 
 const updateProduct = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id: productId } = productsIdSchema.parse({
+    const { id: productId } = productIdSchema.parse({
       id: Number(req.params.id),
     });
     const result = productSchema.parse({
@@ -280,7 +277,7 @@ const updateProduct = async (req: Request, res: Response): Promise<void> => {
 
 const deleteProduct = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id: productId } = productsIdSchema.parse({
+    const { id: productId } = productIdSchema.parse({
       id: Number(req.params.id),
     });
 
@@ -349,7 +346,7 @@ const createReview = async (req: Request, res: Response): Promise<void> => {
 export const productsController = {
   createProduct,
   getProducts,
-  getProductById,
+  getProductBySlug,
   updateProduct,
   deleteProduct,
   createReview,

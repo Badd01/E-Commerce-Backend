@@ -55,7 +55,7 @@ export const productSchema = z.object({
     }),
 });
 
-export const productsIdSchema = z.object({
+export const productIdSchema = z.object({
   id: z
     .number({
       required_error: "Product id is required",
